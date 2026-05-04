@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import BrandLogo from "../BrandLogo";
 
 const Navbar = () => {
   const pathname = usePathname();
@@ -18,36 +19,15 @@ const Navbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
       <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 md:px-6">
-        <Link href="/" className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-pink-200">
-            <svg
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="text-[#ff6fae]"
-            >
-              <path
-                d="M12 20.5s-7.5-4.6-9.4-8.5C1.6 9.5 3.2 6 6.7 6c2 0 3.4 1 4.3 2.4C11.9 7 13.3 6 15.3 6 18.8 6 20.4 9.5 21.4 12c-1.9 3.9-9.4 8.5-9.4 8.5Z"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-              <path
-                d="M8.5 10.5c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2Zm10 0c0 1.1-.9 2-2 2s-2-.9-2-2 .9-2 2-2 2 .9 2 2Z"
-                fill="currentColor"
-              />
-              <path
-                d="M10 14.5c.8.6 1.4.9 2 .9s1.2-.3 2-.9"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-            </svg>
+        <Link href="/" className="flex items-center gap-2 md:gap-1.5">
+          <BrandLogo
+            width={119}
+            height={42}
+          />
+          <div className="hidden md:flex flex-col leading-tight -ml-1">
+            <span className="text-base font-extrabold tracking-tight text-[#ff6fae] lg:text-[1.15rem]">Care Connect</span>
+            <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-gray-500">Trusted Care Platform</span>
           </div>
-          <span className="text-2xl font-semibold text-black md:text-3xl">Care Connect</span>
         </Link>
 
         <div className="hidden items-center gap-8 text-sm font-medium text-gray-800 md:flex lg:gap-10 lg:text-base">
@@ -75,6 +55,20 @@ const Navbar = () => {
           >
             Contact Us
           </Link>
+          <div className="relative group">
+            <button className="flex items-center gap-1 hover:text-[#ff6fae] transition">
+              Dashboard
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            </button>
+            <div className="absolute top-full left-0 mt-2 w-48 rounded-xl bg-white shadow-xl border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+              <Link href="/dashboard/user" className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-[#ff6fae]">
+                <span>👤</span> User Dashboard
+              </Link>
+              <Link href="/dashboard/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-[#ff6fae]">
+                <span>🛡️</span> Admin Dashboard
+              </Link>
+            </div>
+          </div>
         </div>
 
         <div className="flex items-center gap-3">

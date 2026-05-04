@@ -125,7 +125,7 @@ const Banner = () => {
           <div className="absolute right-6 top-6 h-80 w-80 rounded-[80px] border-2 border-dashed border-[#ff9bc6]" />
           <div className="relative mx-auto flex h-[360px] w-[320px] items-center justify-center overflow-hidden rounded-[90px] bg-gradient-to-br from-blue-50 to-pink-50">
             <img
-              src="https://plus.unsplash.com/premium_photo-1681996653334-9e16a2b598aa?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8Y2FyZSUyMGNlbnRlcnxlbnwwfHwwfHx8MA%3D%3D"
+              src="banner.png"
               alt="Caregiver with baby and elderly client"
               className="h-full w-full object-cover"
               loading="lazy"

@@ -1,4 +1,5 @@
 import React from "react";
+import BrandLogo from "../BrandLogo";
 
 const Footer = () => {
     return (
@@ -6,25 +7,13 @@ const Footer = () => {
             <div className="mx-auto w-full max-w-6xl px-6 py-12">
                 <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#b75a86]">
-                                <svg
-                                    className="h-6 w-6"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    strokeWidth="2"
-                                    aria-hidden="true"
-                                >
-                                    <path d="M12 21c4.418 0 8-2.239 8-5s-3.582-5-8-5-8 2.239-8 5 3.582 5 8 5Z" />
-                                    <path d="M12 11c4.418 0 8-2.239 8-5S16.418 1 12 1 4 3.239 4 6s3.582 5 8 5Z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div className="text-2xl font-semibold leading-none">Care Connect</div>
-                                <div className="text-sm text-white/80">Baby & Elderly Care Platform</div>
-                            </div>
-                        </div>
+                        <BrandLogo
+                            width={133}
+                            height={46}
+                            subtitle="Baby & Elderly Care Platform"
+                            subtitleClassName="text-sm text-white/80"
+                            imageClassName="max-w-full"
+                        />
                         <p className="text-white/85">
                             Care Connect is a trusted caregiving platform that helps families find reliable babysitters, elderly caretakers, and home care assistants.
                             We connect trained caregivers with families to make home care simple and safe.

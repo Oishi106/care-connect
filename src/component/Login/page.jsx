@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import BrandLogo from "../BrandLogo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -21,7 +22,12 @@ const Login = () => {
         <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
           <div className="w-full max-w-md">
             {/* Logo */}
-           
+            <div className="mb-8 flex justify-center lg:justify-start">
+              <BrandLogo
+                width={190}
+                height={66}
+              />
+            </div>
 
             {/* Login Card */}
             <div className="rounded-3xl bg-white p-8 shadow-xl sm:p-10">

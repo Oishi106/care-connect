@@ -90,7 +90,7 @@ const About = () => {
             {/* Hero Section */}
        <div className="relative h-48 w-full overflow-hidden bg-gradient-to-r from-gray-400 to-gray-300 sm:h-56 md:h-80">
         <img
-          src="https://plus.unsplash.com/premium_photo-1661274147223-116687829d26?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTd8fEVsZGVybHklMjBDYXJlfGVufDB8fDB8fHww"
+          src="about.png"
           alt="Caregiver with elderly person"
           className="h-full w-full object-cover opacity-75"
         />
