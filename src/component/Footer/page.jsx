@@ -8,8 +8,8 @@ const Footer = () => {
                 <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-4">
                         <BrandLogo
-                            width={133}
-                            height={46}
+                            width={95}
+                            height={40}
                             subtitle="Baby & Elderly Care Platform"
                             subtitleClassName="text-sm text-white/80"
                             imageClassName="max-w-full"
