@@ -1,6 +1,8 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { useEffect } from "react";
+import { fetchServices, fallbackServices } from "@/lib/services";
 
 const allServices = [
   {
@@ -271,6 +273,38 @@ export default function ServicePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [hoveredCard, setHoveredCard] = useState(null);
   const [loadingService, setLoadingService] = useState("");
+  const [services, setServices] = useState(fallbackServices);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServices = async () => {
+      try {
+        const remoteServices = await fetchServices();
+
+        if (isMounted && remoteServices.length > 0) {
+          setServices(remoteServices);
+          setErrorMessage("");
+          return;
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage("Showing local service cards because the remote service API is unavailable.");
+        }
+      }
+
+      if (isMounted) {
+        setServices(fallbackServices);
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const startCheckout = async (service) => {
     try {
@@ -305,8 +339,8 @@ export default function ServicePage() {
   };
 
   const filtered = activeCategory === "All"
-    ? allServices
-    : allServices.filter(s => s.cat === activeCategory);
+    ? services
+    : services.filter(s => s.cat === activeCategory);
 
   return (
     <div className="min-h-screen bg-white">
@@ -334,6 +368,14 @@ export default function ServicePage() {
         </div>
       </div>
 
+      {errorMessage && (
+        <div className="mx-auto max-w-7xl px-4 pt-6 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {errorMessage}
+          </div>
+        </div>
+      )}
+
       {/* Sticky Filter Bar */}
       <div className="sticky top-0 z-20 w-full border-b border-gray-100 bg-white/95 backdrop-blur-md shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -351,7 +393,7 @@ export default function ServicePage() {
                 {cat}
                 {cat !== "All" && (
                   <span className={`ml-1.5 text-xs ${activeCategory === cat ? "text-white/70" : "text-gray-400"}`}>
-                    ({allServices.filter(s => s.cat === cat).length})
+                    ({services.filter(s => s.cat === cat).length})
                   </span>
                 )}
               </button>
@@ -391,24 +433,27 @@ export default function ServicePage() {
         {/* Cards Grid — 4 per row */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {filtered.map((svc, i) => (
+            (() => {
+              const cardGradient = svc.color || svc.gradient || "from-white to-white";
+
+              return (
             <div
               key={i}
               onMouseEnter={() => setHoveredCard(i)}
               onMouseLeave={() => setHoveredCard(null)}
               className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/80 shadow-md transition-all duration-500 hover:-translate-y-2 cursor-pointer"
               style={{
-                background: `linear-gradient(135deg, ${svc.gradient.includes("from-") ? "var(--tw-gradient-from, #fff)" : "#fff"})`,
                 boxShadow: hoveredCard === i ? `0 24px 60px ${svc.accent}28` : undefined,
               }}
             >
               {/* Gradient background */}
-              <div className={`absolute inset-0 bg-linear-to-br ${svc.gradient}`} />
+              <div className={`absolute inset-0 bg-linear-to-br ${cardGradient}`} />
 
               <div className="relative z-10 flex flex-col h-full">
                 {/* Top: icon + tag */}
                 <div className="flex items-start justify-between p-5 pb-2">
                   <div className={`flex h-13 w-13 items-center justify-center rounded-2xl ${svc.accentBg} text-2xl shadow-lg h-12 w-12`}>
-                    {svc.icon}
+                    {svc.icon || "✨"}
                   </div>
                   <span className={`${svc.tagBg} rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm`}>
                     {svc.tag}
@@ -418,13 +463,13 @@ export default function ServicePage() {
                 {/* Title + Desc */}
                 <div className="px-5 pb-3">
                   <h3 className="text-base font-black text-gray-900 leading-snug">{svc.title}</h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-600 line-clamp-3">{svc.desc}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-gray-600 line-clamp-3">{svc.description || svc.desc}</p>
                 </div>
 
                 {/* Image */}
                 <div className="mx-4 overflow-hidden rounded-2xl shrink-0">
                   <img
-                    src={svc.img}
+                    src={svc.image || svc.img}
                     alt={svc.title}
                     className="h-32 w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
@@ -457,6 +502,8 @@ export default function ServicePage() {
                 style={{ background: `radial-gradient(circle at 80% 10%, ${svc.accent}18 0%, transparent 65%)` }}
               />
             </div>
+              );
+            })()
           ))}
         </div>
 

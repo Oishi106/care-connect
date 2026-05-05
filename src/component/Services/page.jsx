@@ -1,46 +1,42 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { fetchServices, fallbackServices } from "@/lib/services";
 
 const Services = () => {
-  const [logos, setLogos] = useState([]);
+  const [services, setServices] = useState(fallbackServices);
   const [loadingService, setLoadingService] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    // Generate dummy logos - in production, replace with real logo data
-    setLogos(Array(6).fill(0).map((_, i) => i));
-  }, []);
+    let isMounted = true;
 
-  const services = [
-    {
-      title: "Elderly Care",
-      description: "Compassionate care for seniors with professional support and attention to health needs",
-      image: "https://plus.unsplash.com/premium_photo-1661340986594-afd7deb5882e?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fEVsZGVybHklMjBDYXJlfGVufDB8fDB8fHww",
-      color: "from-blue-50 to-blue-100",
-      iconBg: "bg-blue-300"
-    },
-    {
-      title: "Baby Sitting",
-      description: "Trusted childcare services with trained professionals ensuring safety and development",
-      image: "https://plus.unsplash.com/premium_photo-1711311021816-efcac4a6806d?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fEJhYnklMjBTaXR0aW5nfGVufDB8fDB8fHww",
-      color: "from-pink-50 to-pink-100",
-      iconBg: "bg-[#ff6fae]"
-    },
-    {
-      title: "Patient Care",
-      description: "Professional medical care assistance for patients with specialized health management",
-      image: "https://images.pexels.com/photos/7447003/pexels-photo-7447003.jpeg",
-      color: "from-blue-50 to-blue-100",
-      iconBg: "bg-blue-300"
-    },
-    {
-      title: "Special Needs Care",
-      description: "Expert care for individuals with special requirements and personalized attention",
-      image: "https://images.pexels.com/photos/6981096/pexels-photo-6981096.jpeg",
-      color: "from-pink-50 to-pink-100",
-      iconBg: "bg-[#ff6fae]"
-    },
-  ];
+    const loadServices = async () => {
+      try {
+        const remoteServices = await fetchServices();
+
+        if (isMounted && remoteServices.length > 0) {
+          setServices(remoteServices);
+          setErrorMessage("");
+          return;
+        }
+      } catch (error) {
+        if (isMounted) {
+          setErrorMessage("Showing local service cards because the remote service API is unavailable.");
+        }
+      }
+
+      if (isMounted) {
+        setServices(fallbackServices);
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const startCheckout = async (service) => {
     try {
@@ -109,6 +105,12 @@ const Services = () => {
           </h2>
           <h3 className="text-2xl font-bold text-gray-900 sm:text-3xl md:text-4xl">Your Loved Ones</h3>
         </div>
+
+        {errorMessage && (
+          <div className="mb-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+            {errorMessage}
+          </div>
+        )}
 
         {/* Service Cards */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 md:gap-8">
