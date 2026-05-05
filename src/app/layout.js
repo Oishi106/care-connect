@@ -1,5 +1,6 @@
 import "./globals.css";
 import ConditionalLayout from "@/component/ConditionalLayout";
+import Providers from "@/component/Providers";
 
 export const metadata = {
   title: "CareConnect - Trusted Care for Your Loved Ones",
@@ -10,7 +11,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className="antialiased">
-        <ConditionalLayout>{children}</ConditionalLayout>
+        <Providers>
+          <ConditionalLayout>{children}</ConditionalLayout>
+        </Providers>
       </body>
     </html>
   );

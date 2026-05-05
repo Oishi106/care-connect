@@ -270,6 +270,39 @@ const categories = ["All", "Child", "Senior", "Medical", "Special", "Wellness"];
 export default function ServicePage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [hoveredCard, setHoveredCard] = useState(null);
+  const [loadingService, setLoadingService] = useState("");
+
+  const startCheckout = async (service) => {
+    try {
+      setLoadingService(service.title);
+
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceName: service.title,
+          priceLabel: service.price,
+          hours: 1,
+          successPath: "/payment/success",
+          cancelPath: "/payment/cancel",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Unable to start payment.");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      alert(error.message || "Unable to start payment.");
+    } finally {
+      setLoadingService("");
+    }
+  };
 
   const filtered = activeCategory === "All"
     ? allServices
@@ -284,7 +317,7 @@ export default function ServicePage() {
           alt="Our services"
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#1a1235]/90 via-[#2a1a50]/70 to-transparent" />
+        <div className="absolute inset-0 bg-linear-to-r from-[#1a1235]/90 via-[#2a1a50]/70 to-transparent" />
         <div className="absolute inset-0 flex flex-col justify-center px-6 sm:px-10 lg:px-20">
           <div className="flex items-center gap-2 text-xs text-pink-300 mb-3">
             <Link href="/" className="hover:text-white transition">Home</Link>
@@ -309,7 +342,7 @@ export default function ServicePage() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
-                className={`flex-shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all ${
+                className={`shrink-0 rounded-full px-5 py-2 text-sm font-semibold transition-all ${
                   activeCategory === cat
                     ? "bg-[#ff6fae] text-white shadow-lg shadow-pink-200"
                     : "bg-gray-100 text-gray-600 hover:bg-pink-50 hover:text-[#ff6fae]"
@@ -323,7 +356,7 @@ export default function ServicePage() {
                 )}
               </button>
             ))}
-            <span className="ml-auto flex-shrink-0 text-xs text-gray-400 pr-2">
+            <span className="ml-auto shrink-0 text-xs text-gray-400 pr-2">
               {filtered.length} services
             </span>
           </div>
@@ -346,7 +379,7 @@ export default function ServicePage() {
           </div>
           <Link
             href="/dashboard/user/book"
-            className="flex-shrink-0 inline-flex items-center gap-2 rounded-full bg-[#ff6fae] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition"
+            className="shrink-0 inline-flex items-center gap-2 rounded-full bg-[#ff6fae] px-6 py-3 text-sm font-bold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition"
           >
             Book a Service
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -369,7 +402,7 @@ export default function ServicePage() {
               }}
             >
               {/* Gradient background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${svc.gradient}`} />
+              <div className={`absolute inset-0 bg-linear-to-br ${svc.gradient}`} />
 
               <div className="relative z-10 flex flex-col h-full">
                 {/* Top: icon + tag */}
@@ -389,7 +422,7 @@ export default function ServicePage() {
                 </div>
 
                 {/* Image */}
-                <div className="mx-4 overflow-hidden rounded-2xl flex-shrink-0">
+                <div className="mx-4 overflow-hidden rounded-2xl shrink-0">
                   <img
                     src={svc.img}
                     alt={svc.title}
@@ -403,16 +436,18 @@ export default function ServicePage() {
                     <p className="text-xs text-gray-400 font-medium">Starting from</p>
                     <p className="text-base font-black" style={{ color: svc.accent }}>{svc.price}</p>
                   </div>
-                  <Link
-                    href="/dashboard/user/book"
-                    className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md transition-all duration-300 group-hover:shadow-lg"
+                  <button
+                    type="button"
+                    onClick={() => startCheckout(svc)}
+                    disabled={loadingService === svc.title}
+                    className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md transition-all duration-300 group-hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
                     style={{ background: svc.accent }}
                   >
-                    Book
+                    {loadingService === svc.title ? "Opening..." : "Book"}
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                       <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                     </svg>
-                  </Link>
+                  </button>
                 </div>
               </div>
 
@@ -435,17 +470,17 @@ export default function ServicePage() {
       </div>
 
       {/* Bottom CTA Banner */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-[#ff6fae] via-[#e0508f] to-[#c73e7a] py-16">
+      <div className="relative overflow-hidden bg-linear-to-r from-[#ff6fae] via-[#e0508f] to-[#c73e7a] py-16">
         <div className="pointer-events-none absolute inset-0">
           <div className="absolute top-0 right-0 h-72 w-72 rounded-full bg-white/10 blur-3xl" />
           <div className="absolute bottom-0 left-0 h-48 w-48 rounded-full bg-white/10 blur-2xl" />
         </div>
         <div className="relative mx-auto max-w-3xl px-6 text-center">
           <h2 className="text-3xl font-black text-white sm:text-4xl">
-            Can't Find What You Need?
+            Can&apos;t Find What You Need?
           </h2>
           <p className="mt-3 text-base text-white/80">
-            Our care coordinators are standing by to create a custom care plan perfectly tailored to your family's unique needs.
+            Our care coordinators are standing by to create a custom care plan perfectly tailored to your family&apos;s unique needs.
           </p>
           <div className="mt-6 flex flex-col sm:flex-row gap-3 justify-center">
             <Link href="/contact" className="rounded-full bg-white px-8 py-3.5 text-sm font-bold text-[#ff6fae] shadow-xl hover:scale-105 transition-transform">

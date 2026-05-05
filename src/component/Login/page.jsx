@@ -2,21 +2,69 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import BrandLogo from "../BrandLogo";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [loginRole, setLoginRole] = useState("user");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const router = useRouter();
 
-  const handleSubmit = (e) => {
+  const loginModes = {
+    user: {
+      label: "User Login",
+      description: "Access your bookings, messages, and profile.",
+      buttonText: "Continue as User",
+      emailPlaceholder: "Enter your user email",
+      passwordPlaceholder: "Enter your user password",
+    },
+    admin: {
+      label: "Admin Login",
+      description: "Manage users, bookings, services, and reports.",
+      buttonText: "Continue as Admin",
+      emailPlaceholder: "Enter your admin email",
+      passwordPlaceholder: "Enter your admin password",
+    },
+  };
+
+  const activeMode = loginModes[loginRole];
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle login logic here
-    console.log("Login submitted:", { email, password });
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+      role: loginRole,
+    });
+
+    setIsSubmitting(false);
+
+    if (result?.error) {
+      setErrorMessage("Invalid credentials for the selected role.");
+      return;
+    }
+
+    router.push(loginRole === "admin" ? "/dashboard/admin" : "/dashboard/user");
+  };
+
+  const handleGoogleLogin = async () => {
+    setErrorMessage("");
+    await signIn("google", {
+      callbackUrl: loginRole === "admin" ? "/dashboard/admin" : "/dashboard/user",
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pink-50 via-white to-blue-50">
+    <div className="min-h-screen bg-linear-to-br from-pink-50 via-white to-blue-50">
       <div className="flex min-h-screen flex-col lg:flex-row">
         {/* Left Side - Login Form */}
         <div className="flex flex-1 items-center justify-center px-4 py-12 sm:px-6 lg:px-8">
@@ -32,7 +80,45 @@ const Login = () => {
             {/* Login Card */}
             <div className="rounded-3xl bg-white p-8 shadow-xl sm:p-10">
               <h1 className="mb-2 text-3xl font-bold text-[#ab126b] sm:text-4xl">LOGIN</h1>
-              <p className="mb-8 text-gray-600">Welcome back! Please enter your details.</p>
+              <p className="mb-6 text-gray-600">Welcome back! Please enter your details.</p>
+
+              <div className="mb-8 rounded-2xl bg-gray-50 p-1">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setLoginRole("user")}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      loginRole === "user"
+                        ? "bg-white text-[#ab126b] shadow-sm"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    User
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLoginRole("admin")}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      loginRole === "admin"
+                        ? "bg-white text-[#ab126b] shadow-sm"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    Admin
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-6 rounded-2xl border border-[#ff6fae]/15 bg-[#ff6fae]/5 p-4">
+                <p className="text-sm font-semibold text-[#ab126b]">{activeMode.label}</p>
+                <p className="mt-1 text-sm text-gray-600">{activeMode.description}</p>
+              </div>
+
+              {errorMessage && (
+                <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {errorMessage}
+                </div>
+              )}
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email Input */}
@@ -52,7 +138,7 @@ const Login = () => {
                       id="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
+                      placeholder={activeMode.emailPlaceholder}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
                       required
                     />
@@ -76,7 +162,7 @@ const Login = () => {
                       id="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
+                      placeholder={activeMode.passwordPlaceholder}
                       className="w-full rounded-xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-12 text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
                       required
                     />
@@ -114,9 +200,10 @@ const Login = () => {
                 {/* Login Button */}
                 <button
                   type="submit"
-                  className="w-full rounded-xl bg-gradient-to-r from-[#ff6fae] to-[#ff8fc4] py-4 text-base font-semibold text-white shadow-lg shadow-pink-200 transition hover:shadow-xl hover:brightness-105"
+                  disabled={isSubmitting}
+                  className="w-full rounded-xl bg-linear-to-r from-[#ff6fae] to-[#ff8fc4] py-4 text-base font-semibold text-white shadow-lg shadow-pink-200 transition hover:shadow-xl hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  Login
+                  {isSubmitting ? "Signing in..." : activeMode.buttonText}
                 </button>
               </form>
 
@@ -130,7 +217,11 @@ const Login = () => {
               {/* Social Login Buttons */}
               <div className="space-y-3">
                 {/* Google Login */}
-                <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md">
+                <button
+                  type="button"
+                  onClick={handleGoogleLogin}
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md"
+                >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -151,7 +242,7 @@ const Login = () => {
 
               {/* Sign Up Link */}
               <p className="mt-8 text-center text-sm text-gray-600">
-                Don't have an account?{" "}
+                Don&apos;t have an account?{" "}
                 <Link href="/signup" className="font-semibold text-[#ff6fae] hover:underline">
                   Sign up
                 </Link>
@@ -161,14 +252,14 @@ const Login = () => {
         </div>
 
         {/* Right Side - Image Section */}
-        <div className="hidden lg:flex lg:flex-1 items-center justify-center p-8 bg-gradient-to-br from-[#ff6fae]/10 via-[#ff8fc4]/10 to-[#7aa7d9]/10">
+        <div className="hidden lg:flex lg:flex-1 items-center justify-center p-8 bg-linear-to-br from-[#ff6fae]/10 via-[#ff8fc4]/10 to-[#7aa7d9]/10">
           <div className="relative w-full max-w-lg">
             {/* Decorative Elements */}
             <div className="absolute -top-8 -left-8 h-24 w-24 rounded-full bg-[#ff6fae]/20 blur-2xl"></div>
             <div className="absolute -bottom-8 -right-8 h-32 w-32 rounded-full bg-[#7aa7d9]/20 blur-2xl"></div>
             
             {/* Main Card */}
-            <div className="relative rounded-3xl bg-gradient-to-br from-[#ff6fae] to-[#ff8fc4] p-1 shadow-2xl shadow-pink-200">
+            <div className="relative rounded-3xl bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] p-1 shadow-2xl shadow-pink-200">
               <div className="rounded-3xl bg-white p-6 sm:p-8">
                 <div className="overflow-hidden rounded-2xl">
                   <img

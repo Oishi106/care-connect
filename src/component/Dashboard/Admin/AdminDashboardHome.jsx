@@ -44,6 +44,9 @@ export default function AdminDashboardHome() {
           <p className="text-gray-500 mt-1 text-sm">Monday, May 4, 2026 · Welcome back, Admin</p>
         </div>
         <div className="flex gap-3">
+          <Link href="/" className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
+            🏠 Home
+          </Link>
           <Link href="/dashboard/admin/reports" className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
             📊 Reports
           </Link>

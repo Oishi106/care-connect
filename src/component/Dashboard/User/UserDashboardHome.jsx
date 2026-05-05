@@ -144,22 +144,30 @@ export default function UserDashboardHome() {
           </h1>
           <p className="mt-1 text-gray-500">Here's what's happening with your care services today.</p>
         </div>
-        <Link
-          href="/dashboard/user/book"
-          className="inline-flex items-center gap-2 rounded-xl bg-[#ff6fae] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition"
-        >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-            <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-          </svg>
-          Book New Service
-        </Link>
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
+          >
+            🏠 Home
+          </Link>
+          <Link
+            href="/dashboard/user/book"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#ff6fae] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            Book New Service
+          </Link>
+        </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat, i) => (
           <div key={i} className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 hover:shadow-md transition">
-            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} mb-4`}>
+            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br ${stat.color} mb-4`}>
               {stat.icon}
             </div>
             <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
@@ -210,7 +218,7 @@ export default function UserDashboardHome() {
           <div className="space-y-4">
             {activities.map((act, i) => (
               <div key={i} className="flex items-start gap-3">
-                <span className={`mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-sm ${act.color}`}>
+                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm ${act.color}`}>
                   {act.icon}
                 </span>
                 <div>
@@ -222,7 +230,7 @@ export default function UserDashboardHome() {
           </div>
 
           {/* Care Plan Widget */}
-          <div className="mt-6 rounded-xl bg-gradient-to-br from-[#ff6fae] to-[#ff8fc4] p-4 text-white">
+          <div className="mt-6 rounded-xl bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] p-4 text-white">
             <p className="text-xs font-semibold opacity-80 uppercase tracking-wide mb-1">Current Plan</p>
             <p className="text-lg font-bold">Standard Care</p>
             <div className="mt-2 h-2 bg-white/30 rounded-full">

@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
+import { signOut } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import BrandLogo from "../../BrandLogo";
 
@@ -39,7 +40,7 @@ export default function AdminSidebar() {
       {!collapsed && (
         <div className="px-4 py-3 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-gradient-to-br from-[#ff6fae] to-[#ff8fc4] flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div className="h-8 w-8 rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] flex items-center justify-center text-white text-xs font-bold">A</div>
             <div>
               <p className="text-xs font-semibold text-white">Admin User</p>
               <p className="text-xs text-white/40">admin@careconnect.com</p>
@@ -59,7 +60,7 @@ export default function AdminSidebar() {
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all ${active ? "bg-[#ff6fae] text-white" : "text-white/60 hover:bg-white/10 hover:text-white"}`}
               title={collapsed ? item.label : ""}
             >
-              <span className="text-base flex-shrink-0">{item.icon}</span>
+              <span className="text-base shrink-0">{item.icon}</span>
               {!collapsed && <span className="text-sm font-medium flex-1">{item.label}</span>}
               {!collapsed && item.badge && (
                 <span className="h-5 w-5 rounded-full bg-white/20 text-xs font-bold flex items-center justify-center">{item.badge}</span>
@@ -71,10 +72,10 @@ export default function AdminSidebar() {
 
       {/* Logout */}
       <div className="p-3 border-t border-white/10">
-        <Link href="/login" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition">
+        <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="flex w-full items-center gap-3 px-3 py-2.5 rounded-xl text-red-400 hover:bg-red-500/10 transition">
           <span className="text-base">🚪</span>
           {!collapsed && <span className="text-sm font-medium">Logout</span>}
-        </Link>
+        </button>
       </div>
     </aside>
   );

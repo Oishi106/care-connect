@@ -55,20 +55,6 @@ const Navbar = () => {
           >
             Contact Us
           </Link>
-          <div className="relative group">
-            <button className="flex items-center gap-1 hover:text-[#ff6fae] transition">
-              Dashboard
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-            </button>
-            <div className="absolute top-full left-0 mt-2 w-48 rounded-xl bg-white shadow-xl border border-gray-100 py-1 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-              <Link href="/dashboard/user" className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-[#ff6fae]">
-                <span>👤</span> User Dashboard
-              </Link>
-              <Link href="/dashboard/admin" className="flex items-center gap-2 px-4 py-2.5 text-sm text-gray-700 hover:bg-pink-50 hover:text-[#ff6fae]">
-                <span>🛡️</span> Admin Dashboard
-              </Link>
-            </div>
-          </div>
         </div>
 
         <div className="flex items-center gap-3">

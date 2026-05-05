@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 
 const Services = () => {
   const [logos, setLogos] = useState([]);
+  const [loadingService, setLoadingService] = useState("");
 
   useEffect(() => {
     // Generate dummy logos - in production, replace with real logo data
@@ -40,6 +41,38 @@ const Services = () => {
       iconBg: "bg-[#ff6fae]"
     },
   ];
+
+  const startCheckout = async (service) => {
+    try {
+      setLoadingService(service.title);
+
+      const response = await fetch("/api/stripe/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serviceName: service.title,
+          priceLabel: service.price,
+          hours: 1,
+          successPath: "/payment/success",
+          cancelPath: "/payment/cancel",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.url) {
+        throw new Error(data.error || "Unable to start payment.");
+      }
+
+      window.location.href = data.url;
+    } catch (error) {
+      alert(error.message || "Unable to start payment.");
+    } finally {
+      setLoadingService("");
+    }
+  };
 
   return (
     <section className="w-full bg-white">
@@ -82,7 +115,7 @@ const Services = () => {
           {services.map((service, index) => (
             <div
               key={index}
-              className={`rounded-3xl bg-gradient-to-br ${service.color} overflow-hidden shadow-md transition duration-300 hover:shadow-lg hover:scale-102`}
+              className={`rounded-3xl bg-linear-to-br ${service.color} overflow-hidden shadow-md transition duration-300 hover:shadow-lg hover:scale-102`}
             >
               {/* Title & Icon Header */}
               <div className="relative px-5 pt-5 sm:px-6 sm:pt-6">
@@ -118,6 +151,20 @@ const Services = () => {
               {/* Description */}
               <div className="px-5 pb-4 sm:px-6">
                 <p className="text-sm leading-relaxed text-gray-600 sm:text-base">{service.description}</p>
+              </div>
+
+              <div className="px-5 pb-4 sm:px-6">
+                <button
+                  type="button"
+                  onClick={() => startCheckout(service)}
+                  disabled={loadingService === service.title}
+                  className="inline-flex items-center gap-2 rounded-full bg-[#ff6fae] px-4 py-2 text-sm font-bold text-white shadow-md transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {loadingService === service.title ? "Opening..." : "Book Now"}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                    <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                  </svg>
+                </button>
               </div>
 
               {/* Image */}
