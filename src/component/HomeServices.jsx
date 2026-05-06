@@ -1,92 +1,39 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-
-const services = [
-  {
-    title: "Elderly Care",
-    desc: "Daily living assistance, health monitoring, and compassionate companionship for seniors.",
-    icon: "👴",
-    gradient: "from-blue-50 via-blue-100 to-sky-100",
-    accent: "#3b82f6",
-    accentBg: "bg-blue-500",
-    tag: "Most Popular",
-    img: "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Baby Sitting",
-    desc: "Trusted, trained babysitters for infants and toddlers with a safety-first approach.",
-    icon: "👶",
-    gradient: "from-pink-50 via-rose-100 to-pink-100",
-    accent: "#ff6fae",
-    accentBg: "bg-[#ff6fae]",
-    tag: "Top Rated",
-    img: "https://images.unsplash.com/photo-1587654780291-39c9404d746b?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Patient Care",
-    desc: "Specialized home nursing and post-surgery recovery assistance by certified caregivers.",
-    icon: "🏥",
-    gradient: "from-green-50 via-emerald-100 to-teal-50",
-    accent: "#10b981",
-    accentBg: "bg-emerald-500",
-    tag: "Certified",
-    img: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Special Needs",
-    desc: "Compassionate, tailored support for individuals with physical or developmental needs.",
-    icon: "💝",
-    gradient: "from-purple-50 via-violet-100 to-purple-100",
-    accent: "#8b5cf6",
-    accentBg: "bg-violet-500",
-    tag: "Expert Care",
-    img: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Child Care",
-    desc: "After-school programs, activity supervision and learning support for growing children.",
-    icon: "🧒",
-    gradient: "from-orange-50 via-amber-100 to-yellow-50",
-    accent: "#f59e0b",
-    accentBg: "bg-amber-500",
-    tag: "New",
-    img: "https://images.unsplash.com/photo-1484820540052-0182ef970858?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Night Care",
-    desc: "Overnight supervision and care ensuring safety and comfort during nighttime hours.",
-    icon: "🌙",
-    gradient: "from-indigo-50 via-indigo-100 to-blue-100",
-    accent: "#6366f1",
-    accentBg: "bg-indigo-500",
-    tag: "24/7",
-    img: "https://images.unsplash.com/photo-1493894473891-10fc1e5dbd22?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Therapy Support",
-    desc: "In-home physical and occupational therapy assistance coordinated with your care team.",
-    icon: "🧘",
-    gradient: "from-teal-50 via-cyan-100 to-teal-100",
-    accent: "#14b8a6",
-    accentBg: "bg-teal-500",
-    tag: "Professional",
-    img: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=600&auto=format&fit=crop&q=80",
-  },
-  {
-    title: "Respite Care",
-    desc: "Temporary relief care for family caregivers — fully managed, trusted, and reliable.",
-    icon: "🤝",
-    gradient: "from-rose-50 via-red-100 to-rose-100",
-    accent: "#f43f5e",
-    accentBg: "bg-rose-500",
-    tag: "Flexible",
-    img: "https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=600&auto=format&fit=crop&q=80",
-  },
-];
+import Image from "next/image";
+import { fetchServices, fallbackServices } from "@/lib/services";
 
 export default function HomeServices() {
   const [hovered, setHovered] = useState(null);
+  const [services, setServices] = useState(fallbackServices);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServices = async () => {
+      try {
+        const remoteServices = await fetchServices();
+
+        if (isMounted && remoteServices.length > 0) {
+          setServices(remoteServices.slice(0, 8));
+          return;
+        }
+      } catch (error) {
+        // Keep the fallback list when the API is unavailable.
+      }
+
+      if (isMounted) {
+        setServices(fallbackServices.slice(0, 8));
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <section className="relative w-full overflow-hidden bg-white py-20 md:py-28">
@@ -115,22 +62,22 @@ export default function HomeServices() {
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {services.map((svc, i) => (
             <div
-              key={i}
+              key={svc.id || i}
               onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
-              className={`group relative overflow-hidden rounded-3xl bg-gradient-to-br ${svc.gradient} border border-white/80 shadow-md transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer`}
+              className={`group relative overflow-hidden rounded-3xl bg-linear-to-br ${svc.color} border border-white/80 shadow-md transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl cursor-pointer`}
               style={{ boxShadow: hovered === i ? `0 20px 60px ${svc.accent}30` : undefined }}
             >
               {/* Tag */}
               <div className="absolute top-4 right-4 z-10">
-                <span className={`${svc.accentBg} rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm`}>
+                <span className={`${svc.tagBg || svc.iconBg} rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm`}>
                   {svc.tag}
                 </span>
               </div>
 
               {/* Icon */}
               <div className="px-6 pt-6 pb-2">
-                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl ${svc.accentBg} text-2xl shadow-lg`}>
+                <div className={`inline-flex h-14 w-14 items-center justify-center rounded-2xl ${svc.iconBg} text-2xl shadow-lg`}>
                   {svc.icon}
                 </div>
               </div>
@@ -138,14 +85,17 @@ export default function HomeServices() {
               {/* Text */}
               <div className="px-6 pb-4">
                 <h3 className="text-lg font-bold text-gray-900">{svc.title}</h3>
-                <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{svc.desc}</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-gray-600">{svc.description}</p>
               </div>
 
               {/* Image */}
               <div className="mx-5 mb-5 overflow-hidden rounded-2xl">
-                <img
-                  src={svc.img}
+                <Image
+                  src={svc.image}
                   alt={svc.title}
+                  width={600}
+                  height={360}
+                  unoptimized
                   className="h-36 w-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
@@ -155,7 +105,7 @@ export default function HomeServices() {
                 <Link
                   href="/service"
                   className={`flex items-center gap-1.5 text-sm font-semibold transition-all duration-300`}
-                  style={{ color: svc.accent }}
+                  style={{ color: svc.accent || "#ff6fae" }}
                 >
                   Learn More
                   <svg
@@ -169,7 +119,7 @@ export default function HomeServices() {
 
               {/* Hover shimmer */}
               <div className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{ background: `radial-gradient(circle at 70% 20%, ${svc.accent}15 0%, transparent 70%)` }}
+                style={{ background: `radial-gradient(circle at 70% 20%, ${(svc.accent || "#ff6fae")}15 0%, transparent 70%)` }}
               />
             </div>
           ))}
