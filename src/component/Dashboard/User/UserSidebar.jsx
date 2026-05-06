@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import BrandLogo from "../../BrandLogo";
@@ -107,6 +108,7 @@ export default function UserSidebar() {
   const user = session?.user;
   const firstName = user?.name?.split(" ")[0] || "User";
   const avatarFallback = user?.name?.[0]?.toUpperCase() || "U";
+  const isActiveRoute = (href) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <>
@@ -130,7 +132,7 @@ export default function UserSidebar() {
           <div className="px-4 py-4 border-b border-gray-100">
             <div className="flex items-center gap-3">
               {user?.image ? (
-                <img src={user.image} alt={user.name} className="h-10 w-10 rounded-full object-cover ring-2 ring-[#ff6fae]/30"/>
+                <Image src={user.image} alt={user.name || "User avatar"} width={40} height={40} className="h-10 w-10 rounded-full object-cover ring-2 ring-[#ff6fae]/30" />
               ) : (
                 <div className="h-10 w-10 rounded-full bg-[#ff6fae] flex items-center justify-center text-white font-bold text-sm">
                   {avatarFallback}
@@ -152,7 +154,7 @@ export default function UserSidebar() {
         {/* Navigation */}
         <nav className="flex-1 overflow-y-auto py-4 px-2">
           {navItems.map((item) => {
-            const active = item.href === "/dashboard/user" ? pathname === "/dashboard/user" : pathname.startsWith(item.href);
+            const active = isActiveRoute(item.href);
             return (
               <Link
                 key={item.href}

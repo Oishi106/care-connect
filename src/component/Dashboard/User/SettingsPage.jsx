@@ -79,9 +79,9 @@ export default function SettingsPage() {
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
           <h3 className="font-bold text-gray-900 mb-4">Change Password</h3>
           <div className="space-y-3">
-            <input type="password" placeholder="Current Password" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
-            <input type="password" placeholder="New Password" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
-            <input type="password" placeholder="Confirm New Password" className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+            <input type="password" placeholder="Current Password" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
+            <input type="password" placeholder="New Password" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
+            <input type="password" placeholder="Confirm New Password" className="w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
           </div>
         </div>
 

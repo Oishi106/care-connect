@@ -24,7 +24,7 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-gray-500 text-sm mt-1">{users.length} registered users</p>
+          <p className="mt-1 text-sm text-gray-600">{users.length} registered users</p>
         </div>
         <div className="flex gap-3">
           <button className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Export CSV</button>
@@ -41,13 +41,13 @@ export default function AdminUsersPage() {
         ].map((s, i) => (
           <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            <p className="mt-0.5 text-xs text-gray-600">{s.label}</p>
           </div>
         ))}
       </div>
 
       <div className="relative mb-4">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none">
           <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
           <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
@@ -59,12 +59,12 @@ export default function AdminUsersPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">User</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden sm:table-cell">Plan</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden md:table-cell">Bookings</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden lg:table-cell">Total Spent</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Status</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Actions</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">User</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Plan</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Bookings</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Total Spent</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Status</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -79,7 +79,7 @@ export default function AdminUsersPage() {
                       )}
                       <div>
                         <p className="font-semibold text-gray-900">{u.name}</p>
-                        <p className="text-xs text-gray-400">{u.email}</p>
+                        <p className="text-xs text-gray-600">{u.email}</p>
                       </div>
                     </div>
                   </td>

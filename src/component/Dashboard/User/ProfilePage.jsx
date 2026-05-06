@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
@@ -54,6 +55,9 @@ export default function ProfilePage() {
       .catch(() => {});
   }, [user]);
 
+  const displayName = form.name || user?.name || "";
+  const displayEmail = form.email || user?.email || "";
+
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
 
   const handleSave = async () => {
@@ -65,7 +69,7 @@ export default function ProfilePage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: user.email,
-          name: form.name || user.name || "",
+          name: displayName,
           ...form,
         }),
       });
@@ -101,16 +105,16 @@ export default function ProfilePage() {
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 text-center">
           <div className="relative inline-block mb-4">
             {user?.image ? (
-              <img src={user.image} alt={user.name} className="h-28 w-28 rounded-full object-cover ring-4 ring-[#ff6fae]/20 mx-auto"/>
+              <Image src={user.image} alt={user.name || "User avatar"} width={112} height={112} className="h-28 w-28 rounded-full object-cover ring-4 ring-[#ff6fae]/20 mx-auto" />
             ) : (
-              <div className="h-28 w-28 rounded-full bg-gradient-to-br from-[#ff6fae] to-[#e0508f] flex items-center justify-center text-white text-4xl font-bold mx-auto ring-4 ring-[#ff6fae]/20">
+              <div className="h-28 w-28 rounded-full bg-linear-to-br from-[#ff6fae] to-[#e0508f] flex items-center justify-center text-white text-4xl font-bold mx-auto ring-4 ring-[#ff6fae]/20">
                 {user?.name?.[0]?.toUpperCase() || "U"}
               </div>
             )}
           </div>
-          <h2 className="font-bold text-gray-900 text-lg">{user?.name || "..."}</h2>
+          <h2 className="font-bold text-gray-900 text-lg">{displayName || "..."}</h2>
           <p className="text-sm text-[#ff6fae] mt-1">Standard Care Member</p>
-          <p className="text-xs text-gray-400 mt-1">{user?.email}</p>
+          <p className="text-xs text-gray-400 mt-1">{displayEmail}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-3 text-center">
             <div className="rounded-xl bg-pink-50 p-3">
@@ -147,10 +151,10 @@ export default function ProfilePage() {
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
                   {editing && f.name !== "email" ? (
-                    <input type={f.type} name={f.name} value={form[f.name]} onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                    <input type={f.type} name={f.name} value={f.name === "name" ? displayName : form[f.name]} onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
                   ) : (
-                    <p className="text-sm font-medium text-gray-900">{(f.name === "name" ? (form.name || user?.name) : f.name === "email" ? (form.email || user?.email) : form[f.name]) || <span className="text-gray-300">Not set</span>}</p>
+                    <p className="text-sm font-medium text-gray-900">{(f.name === "name" ? displayName : f.name === "email" ? displayEmail : form[f.name]) || <span className="text-gray-300">Not set</span>}</p>
                   )}
                 </div>
               ))}
@@ -158,7 +162,7 @@ export default function ProfilePage() {
                 <label className="block text-xs font-medium text-gray-500 mb-1">Address</label>
                 {editing ? (
                   <input name="address" value={form.address} onChange={handleChange}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
                 ) : (
                   <p className="text-sm font-medium text-gray-900">{form.address || <span className="text-gray-300">Not set</span>}</p>
                 )}
@@ -177,7 +181,7 @@ export default function ProfilePage() {
                   <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
                   {editing ? (
                     <input name={f.name} value={form[f.name]} onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
                   ) : (
                     <p className="text-sm font-medium text-gray-900">{form[f.name] || <span className="text-gray-300">Not set</span>}</p>
                   )}
@@ -187,7 +191,7 @@ export default function ProfilePage() {
                 <label className="block text-xs font-medium text-gray-500 mb-1">Special Notes for Caregivers</label>
                 {editing ? (
                   <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
-                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-[#ff6fae]"/>
+                    className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] resize-none focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
                 ) : (
                   <p className="text-sm font-medium text-gray-900">{form.notes || <span className="text-gray-300">Not set</span>}</p>
                 )}

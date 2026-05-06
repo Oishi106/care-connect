@@ -33,7 +33,7 @@ export default function AdminCaregiversPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Caregivers</h1>
-          <p className="text-gray-500 text-sm mt-1">{caregivers.length} total caregivers registered</p>
+          <p className="mt-1 text-sm text-gray-600">{caregivers.length} total caregivers registered</p>
         </div>
         <button onClick={() => setShowModal(true)} className="rounded-xl bg-[#ff6fae] px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95 transition">
           + Add Caregiver
@@ -42,7 +42,7 @@ export default function AdminCaregiversPage() {
 
       {/* Search */}
       <div className="relative mb-6">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none">
           <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
           <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
         </svg>
@@ -55,12 +55,12 @@ export default function AdminCaregiversPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Caregiver</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden sm:table-cell">Specialty</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden md:table-cell">Bookings</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden lg:table-cell">Rating</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Status</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Actions</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Caregiver</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Specialty</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Bookings</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Rating</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Status</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -78,7 +78,7 @@ export default function AdminCaregiversPage() {
                           {cg.name}
                           {cg.verified && <span title="Verified" className="text-blue-500 text-xs">✓</span>}
                         </p>
-                        <p className="text-xs text-gray-400">Joined {cg.joined}</p>
+                        <p className="text-xs text-gray-600">Joined {cg.joined}</p>
                       </div>
                     </div>
                   </td>

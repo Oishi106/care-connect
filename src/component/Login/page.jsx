@@ -33,6 +33,7 @@ const Login = () => {
   };
 
   const activeMode = loginModes[loginRole];
+  const isAdminMode = loginRole === "admin";
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -57,6 +58,11 @@ const Login = () => {
   };
 
   const handleGoogleLogin = async () => {
+    if (isAdminMode) {
+      setErrorMessage("Admin login uses email and password only.");
+      return;
+    }
+
     setErrorMessage("");
     await signIn("google", {
       callbackUrl: loginRole === "admin" ? "/dashboard/admin" : "/dashboard/user",
@@ -112,6 +118,11 @@ const Login = () => {
               <div className="mb-6 rounded-2xl border border-[#ff6fae]/15 bg-[#ff6fae]/5 p-4">
                 <p className="text-sm font-semibold text-[#ab126b]">{activeMode.label}</p>
                 <p className="mt-1 text-sm text-gray-600">{activeMode.description}</p>
+                {isAdminMode && (
+                  <p className="mt-2 text-xs font-medium text-amber-700">
+                    Admin access uses credentials only.
+                  </p>
+                )}
               </div>
 
               {errorMessage && (
@@ -220,7 +231,8 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md"
+                  disabled={isAdminMode}
+                  className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

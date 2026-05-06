@@ -30,14 +30,14 @@ export default function AdminBookingsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">All Bookings</h1>
-          <p className="text-gray-500 text-sm mt-1">{bookings.length} total bookings</p>
+          <p className="mt-1 text-sm text-gray-600">{bookings.length} total bookings</p>
         </div>
         <button className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50">Export</button>
       </div>
 
       <div className="relative mb-4">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by user or booking ID..." className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#ff6fae]"/>
+        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/><path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by user or booking ID..." className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-9 pr-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"/>
       </div>
 
       <div className="flex flex-wrap gap-2 mb-4">
@@ -51,24 +51,24 @@ export default function AdminBookingsPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Booking ID</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">User</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden sm:table-cell">Caregiver</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden md:table-cell">Service</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium hidden lg:table-cell">Date</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Status</th>
-                <th className="text-right px-5 py-3 text-gray-500 font-medium">Amount</th>
-                <th className="text-left px-5 py-3 text-gray-500 font-medium">Actions</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Booking ID</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">User</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Caregiver</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Service</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Date</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Status</th>
+                <th className="px-5 py-3 text-right font-medium text-gray-600">Amount</th>
+                <th className="px-5 py-3 text-left font-medium text-gray-600">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filtered.map(b => (
                 <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                  <td className="px-5 py-3 font-mono text-xs text-gray-500">{b.id}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-gray-600">{b.id}</td>
                   <td className="px-5 py-3 font-medium text-gray-900">{b.user}</td>
                   <td className="px-5 py-3 text-gray-600 hidden sm:table-cell">{b.caregiver}</td>
                   <td className="px-5 py-3 text-gray-600 hidden md:table-cell">{b.service}</td>
-                  <td className="px-5 py-3 text-gray-500 hidden lg:table-cell text-xs">{b.date}</td>
+                  <td className="px-5 py-3 hidden lg:table-cell text-xs text-gray-700">{b.date}</td>
                   <td className="px-5 py-3">
                     <select
                       value={b.status}

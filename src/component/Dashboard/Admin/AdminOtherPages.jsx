@@ -21,7 +21,7 @@ export function AdminServicesPage() {
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-bold text-gray-900">Services</h1><p className="text-gray-500 text-sm mt-1">Manage care service offerings</p></div>
+        <div><h1 className="text-2xl font-bold text-gray-950">Services</h1><p className="mt-1 text-sm text-gray-600">Manage care service offerings</p></div>
         <button onClick={() => setShowAdd(true)} className="rounded-xl bg-[#ff6fae] px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95">+ Add Service</button>
       </div>
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
@@ -34,8 +34,8 @@ export function AdminServicesPage() {
               </button>
             </div>
             <h3 className="font-bold text-gray-900">{s.name}</h3>
-            <p className="text-2xl font-bold text-[#ff6fae] mt-1">${s.price}<span className="text-sm text-gray-400 font-normal">/hr</span></p>
-            <p className="text-xs text-gray-500 mt-2">{s.bookings} total bookings</p>
+            <p className="mt-1 text-2xl font-bold text-[#ff6fae]">${s.price}<span className="text-sm font-normal text-gray-600">/hr</span></p>
+            <p className="mt-2 text-xs text-gray-600">{s.bookings} total bookings</p>
             <div className="flex gap-2 mt-3">
               <button className="flex-1 text-xs rounded-lg border border-gray-200 py-1.5 text-gray-600 hover:bg-gray-50">Edit</button>
               <button className="flex-1 text-xs rounded-lg border border-red-200 py-1.5 text-red-500 hover:bg-red-50">Delete</button>
@@ -75,7 +75,7 @@ export function AdminPaymentsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-900">Payments</h1><p className="text-gray-500 text-sm mt-1">All platform transactions</p></div>
+      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-950">Payments</h1><p className="mt-1 text-sm text-gray-600">All platform transactions</p></div>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Revenue", value: "$18,640", color: "text-[#ff6fae]" },
@@ -85,7 +85,7 @@ export function AdminPaymentsPage() {
         ].map((s, i) => (
           <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
             <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
+            <p className="mt-0.5 text-xs text-gray-600">{s.label}</p>
           </div>
         ))}
       </div>
@@ -94,17 +94,17 @@ export function AdminPaymentsPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                {["ID", "User", "Caregiver", "Method", "Date", "Status", "Amount"].map(h => <th key={h} className="text-left px-5 py-3 text-gray-500 font-medium">{h}</th>)}
+                {["ID", "User", "Caregiver", "Method", "Date", "Status", "Amount"].map(h => <th key={h} className="px-5 py-3 text-left font-medium text-gray-600">{h}</th>)}
               </tr>
             </thead>
             <tbody>
               {transactions.map(tx => (
                 <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                  <td className="px-5 py-3 font-mono text-xs text-gray-400">{tx.id}</td>
+                  <td className="px-5 py-3 font-mono text-xs text-gray-600">{tx.id}</td>
                   <td className="px-5 py-3 font-medium text-gray-900">{tx.user}</td>
                   <td className="px-5 py-3 text-gray-600">{tx.caregiver}</td>
-                  <td className="px-5 py-3 text-gray-500">{tx.method}</td>
-                  <td className="px-5 py-3 text-gray-500 text-xs">{tx.date}</td>
+                  <td className="px-5 py-3 text-gray-700">{tx.method}</td>
+                  <td className="px-5 py-3 text-xs text-gray-700">{tx.date}</td>
                   <td className="px-5 py-3"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[tx.status]}`}>{tx.status}</span></td>
                   <td className="px-5 py-3 font-bold text-gray-900">{tx.amount}</td>
                 </tr>
@@ -129,7 +129,7 @@ export function AdminReportsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-900">Reports & Analytics</h1><p className="text-gray-500 text-sm mt-1">Platform performance overview</p></div>
+      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-950">Reports & Analytics</h1><p className="mt-1 text-sm text-gray-600">Platform performance overview</p></div>
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -141,7 +141,7 @@ export function AdminReportsPage() {
         ].map((k, i) => (
           <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
             <p className="text-2xl font-bold text-gray-900">{k.value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{k.label}</p>
+            <p className="mt-0.5 text-xs text-gray-600">{k.label}</p>
             <p className="text-xs text-green-600 mt-1">↑ {k.change}</p>
           </div>
         ))}
@@ -154,10 +154,10 @@ export function AdminReportsPage() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="text-left py-2 text-gray-500 font-medium">Month</th>
-                <th className="text-left py-2 text-gray-500 font-medium">Revenue</th>
-                <th className="text-left py-2 text-gray-500 font-medium">Bookings</th>
-                <th className="py-2 text-gray-500 font-medium text-left w-48">Progress</th>
+                <th className="py-2 text-left font-medium text-gray-600">Month</th>
+                <th className="py-2 text-left font-medium text-gray-600">Revenue</th>
+                <th className="py-2 text-left font-medium text-gray-600">Bookings</th>
+                <th className="w-48 py-2 text-left font-medium text-gray-600">Progress</th>
               </tr>
             </thead>
             <tbody>
@@ -194,7 +194,7 @@ export function AdminReportsPage() {
                 <div className={`h-full ${s.color} rounded-full`} style={{ width: `${s.pct}%` }}></div>
               </div>
               <span className="text-sm font-bold text-gray-900 w-8 text-right">{s.pct}%</span>
-              <span className="text-xs text-gray-400 w-16 text-right">{s.bookings} bookings</span>
+              <span className="w-16 text-right text-xs text-gray-600">{s.bookings} bookings</span>
             </div>
           ))}
         </div>
@@ -227,13 +227,16 @@ export function AdminSettingsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 max-w-2xl">
-      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-900">Admin Settings</h1><p className="text-gray-500 text-sm mt-1">Configure platform settings</p></div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-950">Admin Settings</h1>
+        <p className="text-sm mt-1 text-gray-600">Configure platform settings</p>
+      </div>
 
-      {saved && <div className="mb-4 rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700 font-medium">✓ Settings saved!</div>}
+      {saved && <div className="mb-4 rounded-xl bg-green-50 border border-green-200 p-3 text-sm font-medium text-green-800">✓ Settings saved!</div>}
 
       <div className="space-y-4">
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
-          <h3 className="font-bold text-gray-900 mb-4">General Settings</h3>
+          <h3 className="mb-4 font-bold text-gray-950">General Settings</h3>
           <div className="space-y-3">
             {[
               { label: "Platform Name", key: "siteName" },
@@ -243,15 +246,19 @@ export function AdminSettingsPage() {
               { label: "Commission Rate (%)", key: "commissionRate" },
             ].map(f => (
               <div key={f.key}>
-                <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
-                <input value={settings[f.key]} onChange={e => setSettings(p => ({ ...p, [f.key]: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                <label className="mb-1 block text-xs font-medium text-gray-700">{f.label}</label>
+                <input
+                  value={settings[f.key]}
+                  onChange={e => setSettings(p => ({ ...p, [f.key]: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"
+                />
               </div>
             ))}
           </div>
         </div>
 
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
-          <h3 className="font-bold text-gray-900 mb-4">Platform Controls</h3>
+          <h3 className="mb-4 font-bold text-gray-950">Platform Controls</h3>
           <div className="space-y-4">
             {[
               { key: "autoApprove", label: "Auto-approve Bookings", desc: "Skip manual review for new bookings" },
@@ -261,7 +268,7 @@ export function AdminSettingsPage() {
               <div key={item.key} className="flex items-center justify-between">
                 <div>
                   <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                  <p className="text-xs text-gray-500">{item.desc}</p>
+                  <p className="text-xs text-gray-600">{item.desc}</p>
                 </div>
                 <Toggle checked={settings[item.key]} onChange={() => toggle(item.key)} />
               </div>
@@ -269,7 +276,7 @@ export function AdminSettingsPage() {
           </div>
         </div>
 
-        <button onClick={save} className="w-full rounded-xl bg-[#ff6fae] py-3 text-white font-semibold hover:brightness-95 transition shadow-lg shadow-pink-200">Save Settings</button>
+        <button onClick={save} className="w-full rounded-xl bg-[#ff6fae] py-3 font-semibold text-white shadow-lg shadow-pink-200 transition hover:brightness-95">Save Settings</button>
       </div>
     </div>
   );

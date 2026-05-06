@@ -169,7 +169,11 @@ export default function ReviewsPage() {
                   ) : (
                     <button
                       type="button"
-                      onClick={() => setModalId(booking.id)}
+                      onClick={() => {
+                        setModalId(booking.id);
+                        setStar(5);
+                        setText("");
+                      }}
                       className="rounded-xl bg-[#ff6fae] px-4 py-2 text-sm font-semibold text-white hover:brightness-95 transition"
                     >
                       Write Review
@@ -211,18 +215,19 @@ export default function ReviewsPage() {
                 </button>
               ))}
             </div>
+            <p className="mb-3 text-xs text-gray-500">Rating is required. Write your comment below, then submit.</p>
 
             <textarea
               rows={4}
               value={text}
               onChange={e => setText(e.target.value)}
               placeholder="Share your experience..."
-              className="mb-4 w-full resize-none rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-[#ff6fae] focus:outline-none"
+              className="mb-4 w-full resize-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 caret-[#ff6fae] focus:border-[#ff6fae] focus:outline-none focus:ring-2 focus:ring-[#ff6fae]/20"
             />
 
             <div className="flex gap-3">
               <button onClick={() => setModalId(null)} className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition">Cancel</button>
-              <button onClick={submitReview} disabled={!star || !text.trim()} className="flex-1 rounded-xl bg-[#ff6fae] py-2.5 text-sm font-semibold text-white disabled:opacity-50 hover:brightness-95 transition">Submit</button>
+              <button onClick={submitReview} disabled={!star || !text.trim()} className="flex-1 rounded-xl bg-[#ff6fae] py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50 hover:brightness-95 transition">Submit</button>
             </div>
           </div>
         </div>

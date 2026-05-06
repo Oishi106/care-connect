@@ -28,9 +28,20 @@ export const authOptions = {
         const email = credentials?.email?.trim().toLowerCase();
         const password = credentials?.password;
         const requestedRole = credentials?.role || "user";
+        const adminEmail = (process.env.ADMIN_EMAIL || "mahmudaoishi457@gmail.com").trim().toLowerCase();
+        const adminPassword = process.env.ADMIN_PASSWORD || "123456";
 
         if (!email || !password) {
           return null;
+        }
+
+        if (requestedRole === "admin" && email === adminEmail && password === adminPassword) {
+          return {
+            id: "admin",
+            name: "Admin User",
+            email: adminEmail,
+            role: "admin",
+          };
         }
 
         const client = await clientPromise;

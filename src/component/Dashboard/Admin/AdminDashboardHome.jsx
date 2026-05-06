@@ -41,7 +41,7 @@ export default function AdminDashboardHome() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Admin Dashboard</h1>
-          <p className="text-gray-500 mt-1 text-sm">Monday, May 4, 2026 · Welcome back, Admin</p>
+          <p className="mt-1 text-sm text-gray-600">Monday, May 4, 2026 · Welcome back, Admin</p>
         </div>
         <div className="flex gap-3">
           <Link href="/" className="rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
@@ -62,7 +62,7 @@ export default function AdminDashboardHome() {
           <div key={i} className={`flex items-center gap-3 rounded-xl border p-3 text-sm ${alertColors[a.type]}`}>
             <span>{a.icon}</span>
             <span className="font-medium">{a.msg}</span>
-            <button className="ml-auto text-lg leading-none opacity-50 hover:opacity-100">×</button>
+            <button className="ml-auto text-lg leading-none opacity-70 hover:opacity-100">×</button>
           </div>
         ))}
       </div>
@@ -97,7 +97,7 @@ export default function AdminDashboardHome() {
                 style={{ height: `${m.val}%` }}
                 className={`w-full rounded-t-lg transition ${m.active ? "bg-[#ff6fae]" : i < 5 ? "bg-[#ff6fae]/30" : "bg-gray-100"}`}
               ></div>
-              <span className="text-xs text-gray-400">{m.month}</span>
+              <span className="text-xs text-gray-600">{m.month}</span>
             </div>
           ))}
         </div>
@@ -114,22 +114,22 @@ export default function AdminDashboardHome() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 text-left">
-                  <th className="pb-3 text-gray-400 font-medium">ID</th>
-                  <th className="pb-3 text-gray-400 font-medium">User</th>
-                  <th className="pb-3 text-gray-400 font-medium hidden md:table-cell">Service</th>
-                  <th className="pb-3 text-gray-400 font-medium">Status</th>
-                  <th className="pb-3 text-gray-400 font-medium text-right">Amount</th>
+                  <th className="pb-3 font-medium text-gray-600">ID</th>
+                  <th className="pb-3 font-medium text-gray-600">User</th>
+                  <th className="pb-3 font-medium text-gray-600 hidden md:table-cell">Service</th>
+                  <th className="pb-3 font-medium text-gray-600">Status</th>
+                  <th className="pb-3 font-medium text-gray-600 text-right">Amount</th>
                 </tr>
               </thead>
               <tbody>
                 {recentBookings.map(b => (
                   <tr key={b.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                    <td className="py-3 font-mono text-xs text-gray-400">{b.id}</td>
+                    <td className="py-3 font-mono text-xs text-gray-600">{b.id}</td>
                     <td className="py-3">
                       <p className="font-medium text-gray-900 text-xs">{b.user}</p>
-                      <p className="text-xs text-gray-400">{b.caregiver}</p>
+                      <p className="text-xs text-gray-600">{b.caregiver}</p>
                     </td>
-                    <td className="py-3 text-gray-600 hidden md:table-cell text-xs">{b.service}</td>
+                    <td className="py-3 hidden md:table-cell text-xs text-gray-700">{b.service}</td>
                     <td className="py-3"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[b.status]}`}>{b.status}</span></td>
                     <td className="py-3 text-right font-bold text-gray-900">{b.amount}</td>
                   </tr>
@@ -148,11 +148,11 @@ export default function AdminDashboardHome() {
           <div className="space-y-4">
             {topCaregivers.map((cg, i) => (
               <div key={i} className="flex items-center gap-3">
-                <span className="flex-shrink-0 text-sm font-bold text-gray-400 w-4">{i+1}</span>
+                <span className="w-4 shrink-0 text-sm font-bold text-gray-600">{i+1}</span>
                 <img src={cg.avatar} alt={cg.name} className="h-10 w-10 rounded-full object-cover"/>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-gray-900 truncate">{cg.name}</p>
-                  <p className="text-xs text-gray-400">{cg.bookings} bookings · ⭐{cg.rating}</p>
+                  <p className="text-xs text-gray-600">{cg.bookings} bookings · ⭐{cg.rating}</p>
                 </div>
                 <p className="text-sm font-bold text-green-600">{cg.revenue}</p>
               </div>
@@ -161,7 +161,7 @@ export default function AdminDashboardHome() {
 
           {/* Quick Actions */}
           <div className="mt-6 pt-4 border-t border-gray-100">
-            <p className="text-xs font-semibold text-gray-500 mb-3">Quick Actions</p>
+            <p className="mb-3 text-xs font-semibold text-gray-700">Quick Actions</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { label: "Add User", href: "/dashboard/admin/users", icon: "👤" },
