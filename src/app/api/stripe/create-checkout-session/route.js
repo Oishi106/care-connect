@@ -53,6 +53,7 @@ export async function POST(request) {
     const serviceName = body.serviceName;
     const priceLabel = body.priceLabel;
     const hours = body.hours || 1;
+    const bookingId = body.bookingId || "";
     const successPath = body.successPath || "/payment/success";
     const cancelPath = body.cancelPath || "/payment/cancel";
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
@@ -66,7 +67,7 @@ export async function POST(request) {
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      success_url: `${baseUrl}${successPath}?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${baseUrl}${successPath}${successPath.includes("?") ? "&" : "?"}session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${baseUrl}${cancelPath}`,
       line_items: [
         {
@@ -85,6 +86,7 @@ export async function POST(request) {
         serviceName,
         priceLabel: priceLabel || "",
         hours: String(hours),
+        bookingId,
       },
     });
 

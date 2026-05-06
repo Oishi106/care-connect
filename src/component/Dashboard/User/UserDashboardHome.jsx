@@ -1,130 +1,8 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-
-const stats = [
-  {
-    label: "Total Bookings",
-    value: "12",
-    change: "+2 this month",
-    up: true,
-    color: "from-[#ff6fae] to-[#ff8fc4]",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: "Active Care",
-    value: "2",
-    change: "In progress",
-    up: true,
-    color: "from-[#7aa7d9] to-[#5b8fc4]",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M22 4L12 14.01l-3-3" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-  },
-  {
-    label: "Total Spent",
-    value: "$480",
-    change: "$60 this month",
-    up: false,
-    color: "from-[#a78bfa] to-[#8b5cf6]",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-        <rect x="1" y="4" width="22" height="16" rx="2" stroke="white" strokeWidth="2"/>
-        <path d="M1 10h22" stroke="white" strokeWidth="2"/>
-      </svg>
-    ),
-  },
-  {
-    label: "Avg. Rating Given",
-    value: "4.8",
-    change: "Excellent",
-    up: true,
-    color: "from-[#f59e0b] to-[#d97706]",
-    icon: (
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
-        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
-      </svg>
-    ),
-  },
-];
-
-const upcomingBookings = [
-  {
-    id: "BK001",
-    caregiver: "Tanvir Hossain",
-    avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&auto=format&fit=crop&q=60",
-    service: "Elderly Care",
-    date: "May 10, 2026",
-    time: "9:00 AM - 5:00 PM",
-    status: "Confirmed",
-    price: "$60",
-  },
-  {
-    id: "BK002",
-    caregiver: "Maya Islam",
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=60",
-    service: "Baby Sitting",
-    date: "May 12, 2026",
-    time: "10:00 AM - 2:00 PM",
-    status: "Pending",
-    price: "$40",
-  },
-  {
-    id: "BK003",
-    caregiver: "Sophie Rahman",
-    avatar: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=100&auto=format&fit=crop&q=60",
-    service: "Patient Care",
-    date: "May 15, 2026",
-    time: "8:00 AM - 6:00 PM",
-    status: "Confirmed",
-    price: "$80",
-  },
-];
-
-const recommendedCaregivers = [
-  {
-    name: "Tanvir Hossain",
-    role: "Elderly Care Specialist",
-    rating: 4.9,
-    reviews: 45,
-    avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=60",
-    price: "$15/hr",
-    badge: "Top Rated",
-  },
-  {
-    name: "Maya Islam",
-    role: "Childcare Expert",
-    rating: 4.8,
-    reviews: 38,
-    avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=60",
-    price: "$12/hr",
-    badge: "Verified",
-  },
-  {
-    name: "Farhana Akter",
-    role: "Home Care Supervisor",
-    rating: 4.7,
-    reviews: 29,
-    avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=60",
-    price: "$14/hr",
-    badge: "Popular",
-  },
-];
-
-const activities = [
-  { icon: "✅", text: "Booking BK001 confirmed", time: "2 hours ago", color: "text-green-600 bg-green-50" },
-  { icon: "💬", text: "New message from Tanvir Hossain", time: "5 hours ago", color: "text-blue-600 bg-blue-50" },
-  { icon: "⭐", text: "You rated Maya Islam 5 stars", time: "Yesterday", color: "text-yellow-600 bg-yellow-50" },
-  { icon: "💳", text: "Payment of $60 processed", time: "2 days ago", color: "text-purple-600 bg-purple-50" },
-];
+import { useSession } from "next-auth/react";
 
 const statusColors = {
   Confirmed: "bg-green-100 text-green-700",
@@ -133,31 +11,65 @@ const statusColors = {
   Completed: "bg-blue-100 text-blue-700",
 };
 
+const recommendedCaregivers = [
+  { name: "Tanvir Hossain", role: "Elderly Care Specialist", rating: 4.9, reviews: 45, avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=200&auto=format&fit=crop&q=60", price: "$15/hr", badge: "Top Rated" },
+  { name: "Maya Islam", role: "Childcare Expert", rating: 4.8, reviews: 38, avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200&auto=format&fit=crop&q=60", price: "$12/hr", badge: "Verified" },
+  { name: "Farhana Akter", role: "Home Care Supervisor", rating: 4.7, reviews: 29, avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=60", price: "$14/hr", badge: "Popular" },
+];
+
 export default function UserDashboardHome() {
+  const { data: session } = useSession();
+  const user = session?.user;
+  const firstName = user?.name?.split(" ")[0] || "there";
+
+  const [bookings, setBookings] = useState([]);
+  const [payments, setPayments] = useState([]);
+  const [loadingBookings, setLoadingBookings] = useState(true);
+  const [loadingPayments, setLoadingPayments] = useState(true);
+
+  useEffect(() => {
+    if (!user?.email) return;
+
+    // Fetch bookings
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings?email=${user.email}`)
+      .then(r => r.json())
+      .then(data => { setBookings(Array.isArray(data) ? data : []); setLoadingBookings(false); })
+      .catch(() => setLoadingBookings(false));
+
+    // Fetch payments
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/payments?email=${user.email}`)
+      .then(r => r.json())
+      .then(data => { setPayments(Array.isArray(data) ? data : []); setLoadingPayments(false); })
+      .catch(() => setLoadingPayments(false));
+  }, [user?.email]);
+
+  const totalSpent = payments.filter(p => p.status === "paid").reduce((sum, p) => sum + (p.amount || 0), 0);
+  const activeBookings = bookings.filter(b => b.status === "Confirmed").length;
+  const upcomingBookings = bookings.filter(b => b.status === "Confirmed" || b.status === "Pending").slice(0, 3);
+
+  const stats = [
+    { label: "Total Bookings", value: loadingBookings ? "..." : bookings.length, change: "All time", up: true, color: "from-[#ff6fae] to-[#ff8fc4]", icon: "📋" },
+    { label: "Active Care", value: loadingBookings ? "..." : activeBookings, change: "In progress", up: true, color: "from-[#7aa7d9] to-[#5b8fc4]", icon: "✅" },
+    { label: "Total Spent", value: loadingPayments ? "..." : `$${totalSpent.toFixed(0)}`, change: "Via Stripe", up: false, color: "from-[#a78bfa] to-[#8b5cf6]", icon: "💳" },
+    { label: "Avg. Rating", value: "4.8", change: "Excellent", up: true, color: "from-[#f59e0b] to-[#d97706]", icon: "⭐" },
+  ];
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
       {/* Header */}
       <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-            Welcome back, <span className="text-[#ff6fae]">Fatima!</span> 👋
+            Welcome back, <span className="text-[#ff6fae]">{firstName}!</span> 👋
           </h1>
-          <p className="mt-1 text-gray-500">Here's what's happening with your care services today.</p>
+          <p className="mt-1 text-gray-500 text-sm">Here's what's happening with your care services today.</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition"
-          >
+          <Link href="/" className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-5 py-3 text-sm font-semibold text-gray-700 hover:bg-gray-50 transition">
             🏠 Home
           </Link>
-          <Link
-            href="/dashboard/user/book"
-            className="inline-flex items-center gap-2 rounded-xl bg-[#ff6fae] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+          <Link href="/dashboard/user/book" className="inline-flex items-center gap-2 rounded-xl bg-[#ff6fae] px-5 py-3 text-sm font-semibold text-white shadow-lg shadow-pink-200 hover:brightness-95 transition">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
             Book New Service
           </Link>
         </div>
@@ -167,14 +79,12 @@ export default function UserDashboardHome() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         {stats.map((stat, i) => (
           <div key={i} className="rounded-2xl bg-white p-5 shadow-sm border border-gray-100 hover:shadow-md transition">
-            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-linear-to-br ${stat.color} mb-4`}>
+            <div className={`inline-flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br ${stat.color} text-xl mb-4`}>
               {stat.icon}
             </div>
             <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
             <p className="text-sm font-medium text-gray-600 mt-1">{stat.label}</p>
-            <p className={`text-xs mt-1 ${stat.up ? "text-green-600" : "text-gray-500"}`}>
-              {stat.up ? "↑ " : ""}{stat.change}
-            </p>
+            <p className={`text-xs mt-1 ${stat.up ? "text-green-600" : "text-gray-500"}`}>{stat.change}</p>
           </div>
         ))}
       </div>
@@ -184,53 +94,78 @@ export default function UserDashboardHome() {
         <div className="lg:col-span-2 rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-bold text-gray-900">Upcoming Bookings</h2>
-            <Link href="/dashboard/user/bookings" className="text-sm text-[#ff6fae] font-semibold hover:underline">
-              View All →
-            </Link>
+            <Link href="/dashboard/user/bookings" className="text-sm text-[#ff6fae] font-semibold hover:underline">View All →</Link>
           </div>
-          <div className="space-y-4">
-            {upcomingBookings.map((booking) => (
-              <div key={booking.id} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-pink-50 transition group">
-                <img
-                  src={booking.avatar}
-                  alt={booking.caregiver}
-                  className="h-12 w-12 rounded-full object-cover ring-2 ring-[#ff6fae]/20"
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">{booking.caregiver}</p>
-                  <p className="text-xs text-[#ff6fae] font-medium">{booking.service}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{booking.date} · {booking.time}</p>
+
+          {loadingBookings ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => <div key={i} className="h-16 rounded-xl bg-gray-100 animate-pulse"/>)}
+            </div>
+          ) : upcomingBookings.length === 0 ? (
+            <div className="text-center py-10 text-gray-400">
+              <p className="text-3xl mb-2">📭</p>
+              <p className="text-sm font-medium">No upcoming bookings</p>
+              <Link href="/dashboard/user/book" className="mt-3 inline-block text-xs font-semibold text-[#ff6fae] hover:underline">Book a service →</Link>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {upcomingBookings.map((booking, i) => (
+                <div key={booking._id || i} className="flex items-center gap-4 p-4 rounded-xl bg-gray-50 hover:bg-pink-50 transition">
+                  <div className="h-12 w-12 rounded-full bg-[#ff6fae]/20 flex items-center justify-center text-[#ff6fae] font-bold text-lg flex-shrink-0">
+                    {booking.serviceTitle?.[0] || "C"}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-gray-900 text-sm truncate">{booking.serviceTitle}</p>
+                    <p className="text-xs text-gray-500 mt-0.5">{booking.date} · {booking.time}</p>
+                  </div>
+                  <div className="text-right">
+                    <span className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${statusColors[booking.status]}`}>{booking.status}</span>
+                    <p className="text-sm font-bold text-gray-800 mt-1">${booking.totalPrice}</p>
+                  </div>
                 </div>
-                <div className="text-right">
-                  <span className={`inline-block text-xs font-semibold px-2 py-1 rounded-full ${statusColors[booking.status]}`}>
-                    {booking.status}
-                  </span>
-                  <p className="text-sm font-bold text-gray-800 mt-1">{booking.price}</p>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Activity Feed */}
+        {/* Right Panel */}
         <div className="rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-6">Recent Activity</h2>
-          <div className="space-y-4">
-            {activities.map((act, i) => (
-              <div key={i} className="flex items-start gap-3">
-                <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm ${act.color}`}>
-                  {act.icon}
-                </span>
-                <div>
-                  <p className="text-sm text-gray-700 font-medium leading-snug">{act.text}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{act.time}</p>
-                </div>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Account Info</h2>
+
+          {/* User card */}
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 mb-4">
+            {user?.image ? (
+              <img src={user.image} alt={user.name} className="h-12 w-12 rounded-full object-cover"/>
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-[#ff6fae] flex items-center justify-center text-white font-bold text-lg">
+                {user?.name?.[0]?.toUpperCase() || "U"}
               </div>
-            ))}
+            )}
+            <div className="min-w-0">
+              <p className="font-semibold text-gray-900 text-sm truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 truncate">{user?.email}</p>
+            </div>
           </div>
 
+          {/* Recent payments */}
+          <h3 className="font-semibold text-gray-700 text-sm mb-3">Recent Payments</h3>
+          {loadingPayments ? (
+            <div className="space-y-2">{[1,2].map(i => <div key={i} className="h-10 rounded-lg bg-gray-100 animate-pulse"/>)}</div>
+          ) : payments.length === 0 ? (
+            <p className="text-xs text-gray-400 text-center py-4">No payments yet</p>
+          ) : (
+            <div className="space-y-2">
+              {payments.slice(0, 3).map((p, i) => (
+                <div key={p._id || i} className="flex items-center justify-between text-xs py-2 border-b border-gray-50">
+                  <span className="text-gray-600 truncate mr-2">{p.serviceTitle || "Care Service"}</span>
+                  <span className="font-bold text-green-600 flex-shrink-0">${p.amount}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
           {/* Care Plan Widget */}
-          <div className="mt-6 rounded-xl bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] p-4 text-white">
+          <div className="mt-4 rounded-xl bg-gradient-to-br from-[#ff6fae] to-[#ff8fc4] p-4 text-white">
             <p className="text-xs font-semibold opacity-80 uppercase tracking-wide mb-1">Current Plan</p>
             <p className="text-lg font-bold">Standard Care</p>
             <div className="mt-2 h-2 bg-white/30 rounded-full">
@@ -248,9 +183,7 @@ export default function UserDashboardHome() {
       <div className="mt-6 rounded-2xl bg-white shadow-sm border border-gray-100 p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-lg font-bold text-gray-900">Recommended Caregivers</h2>
-          <Link href="/dashboard/user/caregivers" className="text-sm text-[#ff6fae] font-semibold hover:underline">
-            View All →
-          </Link>
+          <Link href="/dashboard/user/caregivers" className="text-sm text-[#ff6fae] font-semibold hover:underline">View All →</Link>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {recommendedCaregivers.map((cg, i) => (

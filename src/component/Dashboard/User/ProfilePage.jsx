@@ -1,20 +1,80 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
 export default function ProfilePage() {
+  const { data: session, update } = useSession();
+  const user = session?.user;
+
   const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [stats, setStats] = useState({ bookings: 0, reviews: 0 });
+
   const [form, setForm] = useState({
-    name: "Fatima Ahmed",
-    email: "fatima@example.com",
-    phone: "+880 1712-345678",
-    address: "House 12, Road 5, Dhanmondi, Dhaka",
-    dob: "1985-06-15",
-    emergency: "Rahim Ahmed (+880 1812-345678)",
-    careFor: "Elderly parent & 2 children",
-    notes: "My father has diabetes. Children are 3 and 6 years old.",
+    name: "",
+    email: "",
+    phone: "",
+    address: "",
+    dob: "",
+    emergency: "",
+    careFor: "",
+    notes: "",
   });
 
+  useEffect(() => {
+    if (!user) return;
+
+    // Fetch extra profile data
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile?email=${user.email}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data) {
+          setForm(prev => ({
+            ...prev,
+            phone: data.phone || "",
+            address: data.address || "",
+            dob: data.dob || "",
+            emergency: data.emergency || "",
+            careFor: data.careFor || "",
+            notes: data.notes || "",
+          }));
+        }
+      })
+      .catch(() => {});
+
+    // Fetch stats
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings?email=${user.email}`)
+      .then(r => r.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+          setStats(prev => ({ ...prev, bookings: data.length }));
+        }
+      })
+      .catch(() => {});
+  }, [user]);
+
   const handleChange = e => setForm(p => ({ ...p, [e.target.name]: e.target.value }));
+
+  const handleSave = async () => {
+    if (!user?.email) return;
+    setSaving(true);
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/profile`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          name: form.name || user.name || "",
+          ...form,
+        }),
+      });
+      setSaved(true);
+      setEditing(false);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (e) {}
+    setSaving(false);
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
@@ -24,43 +84,52 @@ export default function ProfilePage() {
           <p className="text-gray-500 text-sm mt-1">Manage your personal information</p>
         </div>
         <button
-          onClick={() => setEditing(!editing)}
-          className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition ${editing ? "bg-green-500 text-white hover:brightness-95" : "bg-[#ff6fae] text-white hover:brightness-95"}`}
+          onClick={() => { if (editing) handleSave(); else setEditing(true); }}
+          disabled={saving}
+          className={`rounded-xl px-5 py-2.5 text-sm font-semibold transition disabled:opacity-60 ${editing ? "bg-green-500 text-white hover:brightness-95" : "bg-[#ff6fae] text-white hover:brightness-95"}`}
         >
-          {editing ? "✓ Save Changes" : "✏️ Edit Profile"}
+          {saving ? "Saving..." : editing ? "✓ Save Changes" : "✏️ Edit Profile"}
         </button>
       </div>
+
+      {saved && (
+        <div className="mb-4 rounded-xl bg-green-50 border border-green-200 p-3 text-sm text-green-700 font-medium">✓ Profile updated successfully!</div>
+      )}
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Avatar Card */}
         <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 text-center">
           <div className="relative inline-block mb-4">
-            <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&auto=format&fit=crop&q=60"
-              alt="Profile"
-              className="h-28 w-28 rounded-full object-cover ring-4 ring-[#ff6fae]/20 mx-auto"
-            />
-            {editing && (
-              <button className="absolute bottom-0 right-0 h-8 w-8 rounded-full bg-[#ff6fae] text-white flex items-center justify-center shadow-md">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="white" strokeWidth="2" strokeLinecap="round"/></svg>
-              </button>
+            {user?.image ? (
+              <img src={user.image} alt={user.name} className="h-28 w-28 rounded-full object-cover ring-4 ring-[#ff6fae]/20 mx-auto"/>
+            ) : (
+              <div className="h-28 w-28 rounded-full bg-gradient-to-br from-[#ff6fae] to-[#e0508f] flex items-center justify-center text-white text-4xl font-bold mx-auto ring-4 ring-[#ff6fae]/20">
+                {user?.name?.[0]?.toUpperCase() || "U"}
+              </div>
             )}
           </div>
-          <h2 className="font-bold text-gray-900 text-lg">{form.name}</h2>
+          <h2 className="font-bold text-gray-900 text-lg">{user?.name || "..."}</h2>
           <p className="text-sm text-[#ff6fae] mt-1">Standard Care Member</p>
-          <div className="mt-4 flex items-center justify-center gap-1">
-            {[...Array(5)].map((_, i) => <span key={i} className="text-yellow-400 text-sm">★</span>)}
-            <span className="text-sm text-gray-500 ml-1">5.0 as client</span>
-          </div>
+          <p className="text-xs text-gray-400 mt-1">{user?.email}</p>
+
           <div className="mt-4 grid grid-cols-2 gap-3 text-center">
             <div className="rounded-xl bg-pink-50 p-3">
-              <p className="text-xl font-bold text-[#ff6fae]">12</p>
+              <p className="text-xl font-bold text-[#ff6fae]">{stats.bookings}</p>
               <p className="text-xs text-gray-500">Bookings</p>
             </div>
             <div className="rounded-xl bg-blue-50 p-3">
-              <p className="text-xl font-bold text-blue-500">4</p>
+              <p className="text-xl font-bold text-blue-500">{stats.reviews}</p>
               <p className="text-xs text-gray-500">Reviews Given</p>
             </div>
+          </div>
+
+          {/* Login method badge */}
+          <div className="mt-4 rounded-xl border border-gray-100 bg-gray-50 p-3 text-xs text-gray-500 flex items-center justify-center gap-2">
+            {user?.image?.includes("google") ? (
+              <><span>🔐</span> Signed in via Google</>
+            ) : (
+              <><span>📧</span> Signed in via Email</>
+            )}
           </div>
         </div>
 
@@ -77,25 +146,21 @@ export default function ProfilePage() {
               ].map(f => (
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
-                  {editing ? (
-                    <input
-                      type={f.type}
-                      name={f.name}
-                      value={form[f.name]}
-                      onChange={handleChange}
-                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"
-                    />
+                  {editing && f.name !== "email" ? (
+                    <input type={f.type} name={f.name} value={form[f.name]} onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
                   ) : (
-                    <p className="text-sm font-medium text-gray-900">{form[f.name]}</p>
+                    <p className="text-sm font-medium text-gray-900">{(f.name === "name" ? (form.name || user?.name) : f.name === "email" ? (form.email || user?.email) : form[f.name]) || <span className="text-gray-300">Not set</span>}</p>
                   )}
                 </div>
               ))}
               <div className="sm:col-span-2">
                 <label className="block text-xs font-medium text-gray-500 mb-1">Address</label>
                 {editing ? (
-                  <input name="address" value={form.address} onChange={handleChange} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                  <input name="address" value={form.address} onChange={handleChange}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
                 ) : (
-                  <p className="text-sm font-medium text-gray-900">{form.address}</p>
+                  <p className="text-sm font-medium text-gray-900">{form.address || <span className="text-gray-300">Not set</span>}</p>
                 )}
               </div>
             </div>
@@ -111,18 +176,20 @@ export default function ProfilePage() {
                 <div key={f.name}>
                   <label className="block text-xs font-medium text-gray-500 mb-1">{f.label}</label>
                   {editing ? (
-                    <input name={f.name} value={form[f.name]} onChange={handleChange} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+                    <input name={f.name} value={form[f.name]} onChange={handleChange}
+                      className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm focus:outline-none focus:border-[#ff6fae]"/>
                   ) : (
-                    <p className="text-sm font-medium text-gray-900">{form[f.name]}</p>
+                    <p className="text-sm font-medium text-gray-900">{form[f.name] || <span className="text-gray-300">Not set</span>}</p>
                   )}
                 </div>
               ))}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">Special Notes for Caregivers</label>
                 {editing ? (
-                  <textarea name="notes" value={form.notes} onChange={handleChange} rows={3} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-[#ff6fae]"/>
+                  <textarea name="notes" value={form.notes} onChange={handleChange} rows={3}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-3 py-2.5 text-sm resize-none focus:outline-none focus:border-[#ff6fae]"/>
                 ) : (
-                  <p className="text-sm font-medium text-gray-900">{form.notes}</p>
+                  <p className="text-sm font-medium text-gray-900">{form.notes || <span className="text-gray-300">Not set</span>}</p>
                 )}
               </div>
             </div>
