@@ -3,11 +3,14 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 import BrandLogo from "../BrandLogo";
 
 const Navbar = () => {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const isActive = (href) => {
     if (href === "/") {
@@ -15,6 +18,9 @@ const Navbar = () => {
     }
     return pathname.startsWith(href);
   };
+
+  const userName = session?.user?.name || session?.user?.email || "Account";
+  const userInitial = userName?.[0]?.toUpperCase() || "A";
 
   return (
     <header className="sticky top-0 z-50 w-full bg-white shadow-[0_1px_0_rgba(0,0,0,0.04)]">
@@ -69,15 +75,59 @@ const Navbar = () => {
             <span className={`block w-6 h-0.5 bg-gray-800 mt-1.5 transition-all duration-300 ${mobileMenuOpen ? '-rotate-45 -translate-y-1.5' : ''}`}></span>
           </button>
 
-          <Link
-            href="/login"
-            className="hidden sm:flex items-center gap-2 rounded-full bg-[#ff6fae] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,111,174,0.25)] transition hover:brightness-95"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Login
-          </Link>
+          {session?.user ? (
+            <div className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                className="flex items-center gap-3 rounded-full border border-pink-100 bg-pink-50 px-3 py-2 text-sm font-semibold text-[#ab126b] transition hover:border-pink-200 hover:bg-pink-100"
+              >
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ff6fae] text-sm font-bold text-white">
+                  {userInitial}
+                </span>
+                <span className="max-w-28 truncate">{userName}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                  <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </button>
+
+              {accountMenuOpen && (
+                <div className="absolute right-0 mt-3 w-52 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-xl">
+                  <Link
+                    href={session.user.role === "admin" ? "/dashboard/admin" : "/dashboard/user"}
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-gray-700 transition hover:bg-pink-50 hover:text-[#ab126b]"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 13h8V3H3v10zm10 8h8V3h-8v18zM3 21h8v-6H3v6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    Dashboard
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="flex w-full items-center gap-3 px-4 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M10 17l5-5-5-5M15 12H3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M21 3v18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                    </svg>
+                    Logout
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              href="/login"
+              className="hidden sm:flex items-center gap-2 rounded-full bg-[#ff6fae] px-6 py-2.5 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,111,174,0.25)] transition hover:brightness-95"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Login
+            </Link>
+          )}
         </div>
       </nav>
 
@@ -112,16 +162,38 @@ const Navbar = () => {
           >
             Contact Us
           </Link>
-          <Link
-            href="/login"
-            onClick={() => setMobileMenuOpen(false)}
-            className="w-full flex items-center justify-center gap-2 rounded-full bg-[#ff6fae] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,111,174,0.25)] transition hover:brightness-95"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Login
-          </Link>
+          {session?.user ? (
+            <>
+              <Link
+                href={session.user.role === "admin" ? "/dashboard/admin" : "/dashboard/user"}
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-pink-50 px-6 py-3 text-sm font-semibold text-[#ab126b] transition hover:bg-pink-100"
+              >
+                Dashboard
+              </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  signOut({ callbackUrl: "/" });
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-full bg-white px-6 py-3 text-sm font-semibold text-red-600 border border-red-100 transition hover:bg-red-50"
+              >
+                Logout
+              </button>
+            </>
+          ) : (
+            <Link
+              href="/login"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full flex items-center justify-center gap-2 rounded-full bg-[#ff6fae] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_20px_rgba(255,111,174,0.25)] transition hover:brightness-95"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Login
+            </Link>
+          )}
         </div>
       </div>
     </header>

@@ -11,6 +11,11 @@ const Signup = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [accountType, setAccountType] = useState("user");
+  const [phone, setPhone] = useState("");
+  const [experience, setExperience] = useState("");
+  const [serviceType, setServiceType] = useState("Home Care");
+  const [bio, setBio] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -34,7 +39,16 @@ const Signup = () => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ fullName, email, password }),
+      body: JSON.stringify({
+        fullName,
+        email,
+        password,
+        role: accountType,
+        phone,
+        experience,
+        serviceType,
+        bio,
+      }),
     });
 
     const data = await response.json();
@@ -49,7 +63,7 @@ const Signup = () => {
       redirect: false,
       email,
       password,
-      role: "user",
+      role: accountType,
     });
 
     setIsSubmitting(false);
@@ -59,10 +73,15 @@ const Signup = () => {
       return;
     }
 
-    router.push("/dashboard/user");
+    router.push(accountType === "caregiver" ? "/dashboard/caregiver" : "/dashboard/user");
   };
 
   const handleGoogleSignup = async () => {
+    if (accountType === "caregiver") {
+      setErrorMessage("Caregiver registration uses email and password only.");
+      return;
+    }
+
     setErrorMessage("");
     await signIn("google", { callbackUrl: "/dashboard/user" });
   };
@@ -135,7 +154,45 @@ const Signup = () => {
             {/* Signup Card */}
             <div className="rounded-3xl bg-white p-8 shadow-xl sm:p-10">
               <h1 className="mb-2 text-3xl font-bold text-[#ab126b] sm:text-4xl">SIGN UP</h1>
-              <p className="mb-8 text-gray-600">Create your account to get started.</p>
+              <p className="mb-6 text-gray-600">Create your account or apply as a caregiver.</p>
+
+              <div className="mb-8 rounded-2xl bg-gray-50 p-1">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("user")}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      accountType === "user"
+                        ? "bg-white text-[#ab126b] shadow-sm"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    User Account
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAccountType("caregiver")}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      accountType === "caregiver"
+                        ? "bg-white text-[#ab126b] shadow-sm"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    Caregiver Apply
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-6 rounded-2xl border border-[#ff6fae]/15 bg-[#ff6fae]/5 p-4">
+                <p className="text-sm font-semibold text-[#ab126b]">
+                  {accountType === "caregiver" ? "Caregiver Application" : "Family Member Account"}
+                </p>
+                <p className="mt-1 text-sm text-gray-600">
+                  {accountType === "caregiver"
+                    ? "Share your profile details and start as a caregiver in your own dashboard."
+                    : "Book services, manage appointments, and message caregivers from your dashboard."}
+                </p>
+              </div>
 
               {errorMessage && (
                 <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
@@ -191,6 +248,76 @@ const Signup = () => {
                     />
                   </div>
                 </div>
+
+                {accountType === "caregiver" && (
+                  <>
+                    <div>
+                      <label htmlFor="phone" className="mb-2 block text-sm font-medium text-gray-700">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        id="phone"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="Enter your phone number"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
+                        required={accountType === "caregiver"}
+                      />
+                    </div>
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="experience" className="mb-2 block text-sm font-medium text-gray-700">
+                          Experience (years)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          id="experience"
+                          value={experience}
+                          onChange={(e) => setExperience(e.target.value)}
+                          placeholder="e.g. 3"
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
+                          required={accountType === "caregiver"}
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="serviceType" className="mb-2 block text-sm font-medium text-gray-700">
+                          Primary Service
+                        </label>
+                        <select
+                          id="serviceType"
+                          value={serviceType}
+                          onChange={(e) => setServiceType(e.target.value)}
+                          className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
+                          required={accountType === "caregiver"}
+                        >
+                          <option>Home Care</option>
+                          <option>Child Care</option>
+                          <option>Elderly Care</option>
+                          <option>Special Needs Care</option>
+                          <option>Post Surgery Care</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">
+                        Short Bio
+                      </label>
+                      <textarea
+                        id="bio"
+                        value={bio}
+                        onChange={(e) => setBio(e.target.value)}
+                        rows="4"
+                        placeholder="Tell families about your background, certifications, and care style"
+                        className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 placeholder-gray-400 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
+                        required={accountType === "caregiver"}
+                      />
+                    </div>
+                  </>
+                )}
 
                 {/* Password Input */}
                 <div>
@@ -288,7 +415,7 @@ const Signup = () => {
                   disabled={isSubmitting}
                   className="w-full rounded-xl bg-linear-to-r from-[#ff6fae] to-[#ff8fc4] py-4 text-base font-semibold text-white shadow-lg shadow-pink-200 transition hover:shadow-xl hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {isSubmitting ? "Creating account..." : "Create Account"}
+                  {isSubmitting ? "Creating account..." : accountType === "caregiver" ? "Apply as Caregiver" : "Create Account"}
                 </button>
               </form>
 
@@ -301,6 +428,7 @@ const Signup = () => {
               <button
                 type="button"
                 onClick={handleGoogleSignup}
+                disabled={accountType === "caregiver"}
                 className="mb-5 flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md"
               >
                 <svg width="20" height="20" viewBox="0 0 24 24">
@@ -309,7 +437,7 @@ const Signup = () => {
                   <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                   <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                 </svg>
-                Continue with Google
+                {accountType === "caregiver" ? "Google signup unavailable for caregivers" : "Continue with Google"}
               </button>
 
               {/* Login Link */}

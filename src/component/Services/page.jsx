@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { fetchServices, fallbackServices } from "@/lib/services";
 
 const Services = () => {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = useSession();
   const [services, setServices] = useState(fallbackServices);
   const [loadingService, setLoadingService] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -39,6 +44,11 @@ const Services = () => {
   }, []);
 
   const startCheckout = async (service) => {
+    if (!session?.user) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
     try {
       setLoadingService(service.title);
 
@@ -162,7 +172,7 @@ const Services = () => {
                   disabled={loadingService === service.title}
                   className="inline-flex items-center gap-2 rounded-full bg-[#ff6fae] px-4 py-2 text-sm font-bold text-white shadow-md transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-70"
                 >
-                  {loadingService === service.title ? "Opening..." : "Book Now"}
+                  {loadingService === service.title ? "Opening..." : session?.user ? "Book Now" : "Login to Book"}
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
                   </svg>

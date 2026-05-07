@@ -16,7 +16,7 @@ export default async function UserDashboardLayout({ children }) {
   }
 
   if (session.user?.role !== "user") {
-    redirect(session.user?.role === "admin" ? "/dashboard/admin" : "/login");
+    redirect(session.user?.role === "admin" ? "/dashboard/admin" : session.user?.role === "caregiver" ? "/dashboard/caregiver" : "/login");
   }
 
   return (

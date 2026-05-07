@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import BrandLogo from "../BrandLogo";
 
 const Login = () => {
@@ -14,6 +14,9 @@ const Login = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedCallbackUrl = searchParams.get("callbackUrl") || "/dashboard/user";
+  const callbackUrl = requestedCallbackUrl.startsWith("/") ? requestedCallbackUrl : "/dashboard/user";
 
   const loginModes = {
     user: {
@@ -22,6 +25,13 @@ const Login = () => {
       buttonText: "Continue as User",
       emailPlaceholder: "Enter your user email",
       passwordPlaceholder: "Enter your user password",
+    },
+    caregiver: {
+      label: "Caregiver Login",
+      description: "Manage your caregiver profile, requests, and availability.",
+      buttonText: "Continue as Caregiver",
+      emailPlaceholder: "Enter your caregiver email",
+      passwordPlaceholder: "Enter your caregiver password",
     },
     admin: {
       label: "Admin Login",
@@ -54,7 +64,17 @@ const Login = () => {
       return;
     }
 
-    router.push(loginRole === "admin" ? "/dashboard/admin" : "/dashboard/user");
+    if (loginRole === "admin") {
+      router.push("/dashboard/admin");
+      return;
+    }
+
+    if (loginRole === "caregiver") {
+      router.push("/dashboard/caregiver");
+      return;
+    }
+
+    router.push(callbackUrl);
   };
 
   const handleGoogleLogin = async () => {
@@ -63,9 +83,14 @@ const Login = () => {
       return;
     }
 
+    if (loginRole === "caregiver") {
+      setErrorMessage("Caregiver login uses email and password only.");
+      return;
+    }
+
     setErrorMessage("");
     await signIn("google", {
-      callbackUrl: loginRole === "admin" ? "/dashboard/admin" : "/dashboard/user",
+      callbackUrl: callbackUrl,
     });
   };
 
@@ -89,7 +114,7 @@ const Login = () => {
               <p className="mb-6 text-gray-600">Welcome back! Please enter your details.</p>
 
               <div className="mb-8 rounded-2xl bg-gray-50 p-1">
-                <div className="grid grid-cols-2 gap-1">
+                <div className="grid grid-cols-3 gap-1">
                   <button
                     type="button"
                     onClick={() => setLoginRole("user")}
@@ -100,6 +125,17 @@ const Login = () => {
                     }`}
                   >
                     User
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLoginRole("caregiver")}
+                    className={`rounded-xl px-4 py-3 text-sm font-semibold transition ${
+                      loginRole === "caregiver"
+                        ? "bg-white text-[#ab126b] shadow-sm"
+                        : "text-gray-500 hover:text-gray-800"
+                    }`}
+                  >
+                    Caregiver
                   </button>
                   <button
                     type="button"
@@ -118,9 +154,11 @@ const Login = () => {
               <div className="mb-6 rounded-2xl border border-[#ff6fae]/15 bg-[#ff6fae]/5 p-4">
                 <p className="text-sm font-semibold text-[#ab126b]">{activeMode.label}</p>
                 <p className="mt-1 text-sm text-gray-600">{activeMode.description}</p>
-                {isAdminMode && (
+                {(isAdminMode || loginRole === "caregiver") && (
                   <p className="mt-2 text-xs font-medium text-amber-700">
-                    Admin access uses credentials only.
+                    {isAdminMode
+                      ? "Admin access uses credentials only."
+                      : "Caregiver access uses credentials only."}
                   </p>
                 )}
               </div>
@@ -231,7 +269,7 @@ const Login = () => {
                 <button
                   type="button"
                   onClick={handleGoogleLogin}
-                  disabled={isAdminMode}
+                  disabled={isAdminMode || loginRole === "caregiver"}
                   className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <svg width="20" height="20" viewBox="0 0 24 24">
@@ -240,16 +278,12 @@ const Login = () => {
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  Continue with Google
+                  {loginRole === "caregiver"
+                    ? "Google sign-in unavailable for caregivers"
+                    : "Continue with Google"}
                 </button>
 
-                {/* Facebook Login */}
-                <button className="flex w-full items-center justify-center gap-3 rounded-xl border border-gray-200 bg-white py-3.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 hover:shadow-md">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="#1877F2">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                  </svg>
-                  Continue with Facebook
-                </button>
+               
               </div>
 
               {/* Sign Up Link */}

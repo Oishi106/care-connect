@@ -8,6 +8,11 @@ export async function POST(request) {
     const fullName = body.fullName?.trim();
     const email = body.email?.trim().toLowerCase();
     const password = body.password;
+    const role = body.role === "caregiver" ? "caregiver" : "user";
+    const phone = body.phone?.trim() || "";
+    const experience = body.experience?.trim() || "";
+    const serviceType = body.serviceType?.trim() || "";
+    const bio = body.bio?.trim() || "";
 
     if (!fullName || !email || !password) {
       return NextResponse.json(
@@ -19,6 +24,13 @@ export async function POST(request) {
     if (password.length < 6) {
       return NextResponse.json(
         { error: "Password must be at least 6 characters long." },
+        { status: 400 }
+      );
+    }
+
+    if (role === "caregiver" && (!phone || !experience || !serviceType || !bio)) {
+      return NextResponse.json(
+        { error: "Phone, experience, service type, and bio are required for caregiver applications." },
         { status: 400 }
       );
     }
@@ -40,7 +52,12 @@ export async function POST(request) {
       name: fullName,
       email,
       password: hashedPassword,
-      role: "user",
+      role,
+      phone: role === "caregiver" ? phone : "",
+      experience: role === "caregiver" ? experience : "",
+      serviceType: role === "caregiver" ? serviceType : "",
+      bio: role === "caregiver" ? bio : "",
+      applicationStatus: role === "caregiver" ? "pending" : "active",
       image: null,
       emailVerified: null,
       createdAt: new Date(),
@@ -54,7 +71,7 @@ export async function POST(request) {
           id: result.insertedId.toString(),
           name: fullName,
           email,
-          role: "user",
+          role,
         },
       },
       { status: 201 }

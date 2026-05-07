@@ -119,7 +119,9 @@ export default function UserSidebar() {
       <aside className={`${collapsed ? "w-20" : "w-64"} relative flex flex-col bg-white border-r border-gray-100 shadow-sm transition-all duration-300 min-h-screen z-30`}>
         {/* Logo */}
         <div className="flex items-center gap-3 px-4 py-5 border-b border-gray-100">
-          <BrandLogo width={collapsed ? 56 : 140} height={collapsed ? 20 : 50} imageClassName="max-w-full" />
+          <Link href="/" className="flex min-w-0 items-center gap-3">
+            <BrandLogo width={collapsed ? 56 : 140} height={collapsed ? 20 : 50} imageClassName="max-w-full" />
+          </Link>
           <button onClick={() => setCollapsed(!collapsed)} className="ml-auto shrink-0 p-1 rounded-lg hover:bg-gray-100 transition">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d={collapsed ? "M9 18l6-6-6-6" : "M15 18l-6-6 6-6"} stroke="#9ca3af" strokeWidth="2" strokeLinecap="round"/>
