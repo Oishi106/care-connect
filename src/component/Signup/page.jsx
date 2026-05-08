@@ -59,6 +59,12 @@ const Signup = () => {
       return;
     }
 
+    if (accountType === "caregiver") {
+      setIsSubmitting(false);
+      router.push("/login?caregiverApplied=1");
+      return;
+    }
+
     const loginResult = await signIn("credentials", {
       redirect: false,
       email,

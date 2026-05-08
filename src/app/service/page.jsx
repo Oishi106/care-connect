@@ -2,6 +2,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { fetchServices, fallbackServices } from "@/lib/services";
 
 const allServices = [
@@ -270,6 +272,9 @@ const allServices = [
 const categories = ["All", "Child", "Senior", "Medical", "Special", "Wellness"];
 
 export default function ServicePage() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const { data: session } = useSession();
   const [activeCategory, setActiveCategory] = useState("All");
   const [hoveredCard, setHoveredCard] = useState(null);
   const [loadingService, setLoadingService] = useState("");
@@ -283,30 +288,33 @@ export default function ServicePage() {
       try {
         const remoteServices = await fetchServices();
 
-        if (isMounted && remoteServices.length > 0) {
+        if (isMounted) {
           setServices(remoteServices);
           setErrorMessage("");
-          return;
         }
       } catch (error) {
         if (isMounted) {
           setErrorMessage("Showing local service cards because the remote service API is unavailable.");
+          setServices(fallbackServices);
         }
-      }
-
-      if (isMounted) {
-        setServices(fallbackServices);
       }
     };
 
     loadServices();
+    const intervalId = setInterval(loadServices, 10000);
 
     return () => {
       isMounted = false;
+      clearInterval(intervalId);
     };
   }, []);
 
   const startCheckout = async (service) => {
+    if (!session?.user) {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
+
     try {
       setLoadingService(service.title);
 
@@ -432,90 +440,88 @@ export default function ServicePage() {
 
         {/* Cards Grid — 4 per row */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {filtered.map((svc, i) => (
-            (() => {
-              const cardGradient = svc.color || svc.gradient || "from-white to-white";
+          {filtered.map((svc, i) => {
+            const cardGradient = svc.color || svc.gradient || "from-white to-white";
+            const uniqueKey = svc._id || `service-${i}`;
 
-              return (
-            <div
-              key={i}
-              onMouseEnter={() => setHoveredCard(i)}
-              onMouseLeave={() => setHoveredCard(null)}
-              className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/80 shadow-md transition-all duration-500 hover:-translate-y-2 cursor-pointer"
-              style={{
-                boxShadow: hoveredCard === i ? `0 24px 60px ${svc.accent}28` : undefined,
-              }}
-            >
-              {/* Gradient background */}
-              <div className={`absolute inset-0 bg-linear-to-br ${cardGradient}`} />
-
-              <div className="relative z-10 flex flex-col h-full">
-                {/* Top: icon + tag */}
-                <div className="flex items-start justify-between p-5 pb-2">
-                  <div className={`flex h-13 w-13 items-center justify-center rounded-2xl ${svc.accentBg} text-2xl shadow-lg h-12 w-12`}>
-                    {svc.icon || "✨"}
-                  </div>
-                  <span className={`${svc.tagBg} rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm`}>
-                    {svc.tag}
-                  </span>
-                </div>
-
-                {/* Title + Desc */}
-                <div className="px-5 pb-3">
-                  <h3 className="text-base font-black text-gray-900 leading-snug">{svc.title}</h3>
-                  <p className="mt-1.5 text-xs leading-relaxed text-gray-600 line-clamp-3">{svc.description || svc.desc}</p>
-                </div>
-
-                {/* Image */}
-                <div className="mx-4 overflow-hidden rounded-2xl shrink-0">
-                  <img
-                    src={svc.image || svc.img}
-                    alt={svc.title}
-                    className="h-32 w-full object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                </div>
-
-                {/* Price + CTA */}
-                <div className="mt-auto p-4 flex items-center justify-between">
-                  <div>
-                    <p className="text-xs text-gray-400 font-medium">Starting from</p>
-                    <p className="text-base font-black" style={{ color: svc.accent }}>{svc.price}</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => startCheckout(svc)}
-                    disabled={loadingService === svc.title}
-                    className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md transition-all duration-300 group-hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
-                    style={{ background: svc.accent }}
-                  >
-                    {loadingService === svc.title ? "Opening..." : "Book"}
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
-                      <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Hover shimmer */}
+            return (
               <div
-                className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{ background: `radial-gradient(circle at 80% 10%, ${svc.accent}18 0%, transparent 65%)` }}
-              />
-            </div>
-              );
-            })()
-          ))}
+                key={uniqueKey}
+                onMouseEnter={() => setHoveredCard(uniqueKey)}
+                onMouseLeave={() => setHoveredCard(null)}
+                className="group relative flex flex-col overflow-hidden rounded-3xl border border-white/80 shadow-md transition-all duration-500 hover:-translate-y-2 cursor-pointer"
+                style={{
+                  boxShadow: hoveredCard === uniqueKey ? `0 24px 60px ${svc.accent}28` : undefined,
+                }}
+              >
+                {/* Gradient background */}
+                <div className={`absolute inset-0 bg-linear-to-br ${cardGradient}`} />
+
+                <div className="relative z-10 flex flex-col h-full">
+                  {/* Top: icon + tag */}
+                  <div className="flex items-start justify-between p-5 pb-2">
+                    <div className={`flex h-12 w-12 items-center justify-center rounded-2xl ${svc.accentBg} text-2xl shadow-lg`}>
+                      {svc.icon || "✨"}
+                    </div>
+                    <span className={`${svc.tagBg} rounded-full px-2.5 py-1 text-xs font-bold text-white shadow-sm`}>
+                      {svc.tag}
+                    </span>
+                  </div>
+
+                  {/* Title + Desc */}
+                  <div className="px-5 pb-3">
+                    <h3 className="text-base font-black text-gray-900 leading-snug">{svc.title}</h3>
+                    <p className="mt-1.5 text-xs leading-relaxed text-gray-600 line-clamp-3">{svc.description || svc.desc}</p>
+                  </div>
+
+                  {/* Image */}
+                  <div className="mx-4 overflow-hidden rounded-2xl shrink-0">
+                    <img
+                      src={svc.image || svc.img}
+                      alt={svc.title}
+                      className="h-32 w-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    />
+                  </div>
+
+                  {/* Price + CTA */}
+                  <div className="mt-auto flex items-center justify-between p-4">
+                    <div>
+                      <p className="text-xs font-medium text-gray-400">Starting from</p>
+                      <p className="text-base font-black" style={{ color: svc.accent }}>{svc.price}</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => startCheckout(svc)}
+                      disabled={loadingService === svc.title}
+                      className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-bold text-white shadow-md transition-all duration-300 group-hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
+                      style={{ background: svc.accent }}
+                    >
+                      {loadingService === svc.title ? "Opening..." : session?.user ? "Book" : "Login to Book"}
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12h14M12 5l7 7-7 7" stroke="white" strokeWidth="2.5" strokeLinecap="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Hover shimmer */}
+                <div
+                  className="pointer-events-none absolute inset-0 rounded-3xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                  style={{ background: `radial-gradient(circle at 80% 10%, ${svc.accent}18 0%, transparent 65%)` }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         {/* Empty state */}
         {filtered.length === 0 && (
           <div className="py-24 text-center text-gray-400">
-            <p className="text-5xl mb-4">🔍</p>
-            <p className="font-semibold text-lg">No services found</p>
+            <p className="mb-4 text-5xl">🔍</p>
+            <p className="text-lg font-semibold">No services found</p>
           </div>
         )}
-      </div>
-
+        </div>
       {/* Bottom CTA Banner */}
       <div className="relative overflow-hidden bg-linear-to-r from-[#ff6fae] via-[#e0508f] to-[#c73e7a] py-16">
         <div className="pointer-events-none absolute inset-0">

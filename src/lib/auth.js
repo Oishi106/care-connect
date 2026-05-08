@@ -60,6 +60,10 @@ export const authOptions = {
 
         const userRole = user.role || "user";
 
+        if (userRole === "caregiver" && user.applicationStatus !== "approved") {
+          return null;
+        }
+
         if (requestedRole && requestedRole !== userRole) {
           return null;
         }

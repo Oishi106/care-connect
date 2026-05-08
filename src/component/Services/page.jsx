@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { fetchServices, fallbackServices } from "@/lib/services";
@@ -20,26 +21,24 @@ const Services = () => {
       try {
         const remoteServices = await fetchServices();
 
-        if (isMounted && remoteServices.length > 0) {
+        if (isMounted) {
           setServices(remoteServices);
           setErrorMessage("");
-          return;
         }
       } catch (error) {
         if (isMounted) {
           setErrorMessage("Showing local service cards because the remote service API is unavailable.");
+          setServices(fallbackServices);
         }
-      }
-
-      if (isMounted) {
-        setServices(fallbackServices);
       }
     };
 
     loadServices();
+    const intervalId = setInterval(loadServices, 10000);
 
     return () => {
       isMounted = false;
+      clearInterval(intervalId);
     };
   }, []);
 
@@ -181,11 +180,12 @@ const Services = () => {
 
               {/* Image */}
               <div className="relative h-48 overflow-hidden rounded-3xl mx-5 mb-5 sm:h-52 sm:mx-6 sm:mb-6">
-                <img
-                  src={service.image}
+                <Image
+                  src={service.image || service.img}
                   alt={service.title}
-                  className="h-full w-full rounded-3xl object-cover"
-                  loading="lazy"
+                  fill
+                  className="rounded-3xl object-cover"
+                  sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
               </div>
             </div>

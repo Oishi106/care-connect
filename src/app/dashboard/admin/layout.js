@@ -22,7 +22,7 @@ export default async function AdminDashboardLayout({ children }) {
   return (
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar />
-      <main className="flex-1 overflow-auto">
+      <main className="dashboard-shell flex-1 overflow-auto">
         {children}
       </main>
     </div>

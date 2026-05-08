@@ -1,138 +1,199 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 
-const initCaregivers = [
-  { id: 1, name: "Tanvir Hossain", specialty: "Elderly Care", status: "Active", bookings: 45, rating: 4.9, joined: "Jan 2025", phone: "+880 1712-111111", avatar: "https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=100&auto=format&fit=crop&q=60", verified: true },
-  { id: 2, name: "Maya Islam", specialty: "Baby Sitting", status: "Active", bookings: 38, rating: 4.8, joined: "Feb 2025", phone: "+880 1712-222222", avatar: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=100&auto=format&fit=crop&q=60", verified: true },
-  { id: 3, name: "Sophie Rahman", specialty: "Patient Care", status: "Active", bookings: 52, rating: 4.9, joined: "Mar 2024", phone: "+880 1712-333333", avatar: "https://images.unsplash.com/photo-1594824476967-48c8b964273f?w=100&auto=format&fit=crop&q=60", verified: true },
-  { id: 4, name: "Ethan Karim", specialty: "Special Needs", status: "Inactive", bookings: 29, rating: 4.7, joined: "Jun 2025", phone: "+880 1712-444444", avatar: "https://images.unsplash.com/photo-1592334873219-42ca023e48ce?w=100&auto=format&fit=crop&q=60", verified: false },
-  { id: 5, name: "Farhana Akter", specialty: "Elderly Care", status: "Active", bookings: 41, rating: 4.8, joined: "Apr 2024", phone: "+880 1712-555555", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=100&auto=format&fit=crop&q=60", verified: true },
-];
+const statusColors = {
+  pending:  "bg-yellow-100 text-yellow-700",
+  approved: "bg-green-100 text-green-700",
+  rejected: "bg-red-100 text-red-700",
+};
 
 export default function AdminCaregiversPage() {
-  const [caregivers, setCaregivers] = useState(initCaregivers);
+  const { data: session } = useSession();
+  const [tab, setTab] = useState("applications"); // applications | active
+  const [applications, setApplications] = useState([]);
+  const [activeCaregivers, setActiveCaregivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState("pending");
   const [search, setSearch] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [newCg, setNewCg] = useState({ name: "", specialty: "Elderly Care", phone: "" });
+  const [updating, setUpdating] = useState(null);
 
-  const filtered = caregivers.filter(cg => cg.name.toLowerCase().includes(search.toLowerCase()));
+  useEffect(() => {
+    loadApplications();
+  }, [filter]);
 
-  const toggleStatus = (id) => {
-    setCaregivers(prev => prev.map(cg => cg.id === id ? { ...cg, status: cg.status === "Active" ? "Inactive" : "Active" } : cg));
+  const loadApplications = () => {
+    setLoading(true);
+    fetch(`${process.env.NEXT_PUBLIC_API_URL}/caregiver-applications?status=${filter}`)
+      .then(r => r.json())
+      .then(data => { setApplications(Array.isArray(data) ? data : []); setLoading(false); })
+      .catch(() => setLoading(false));
   };
 
-  const addCg = () => {
-    if (!newCg.name) return;
-    setCaregivers(prev => [...prev, { id: Date.now(), ...newCg, bookings: 0, rating: 0, joined: "May 2026", avatar: null, verified: false, status: "Active" }]);
-    setShowModal(false);
-    setNewCg({ name: "", specialty: "Elderly Care", phone: "" });
+  const updateStatus = async (id, status) => {
+    setUpdating(id);
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/caregiver-applications/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      setApplications(prev => prev.filter(a => a._id !== id));
+    } catch (e) {}
+    setUpdating(null);
   };
+
+  const filtered = applications.filter(a =>
+    a.name?.toLowerCase().includes(search.toLowerCase()) ||
+    a.email?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  const pendingCount = applications.filter(a => a.status === "pending").length;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Caregivers</h1>
-          <p className="mt-1 text-sm text-gray-600">{caregivers.length} total caregivers registered</p>
+          <p className="text-gray-500 text-sm mt-1">Manage applications and active caregivers</p>
         </div>
-        <button onClick={() => setShowModal(true)} className="rounded-xl bg-[#ff6fae] px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95 transition">
-          + Add Caregiver
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-3 mb-6">
+        <button
+          onClick={() => setTab("applications")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition ${tab === "applications" ? "bg-[#ff6fae] text-white shadow-lg shadow-pink-200" : "bg-white text-gray-600 border border-gray-200 hover:border-[#ff6fae]"}`}
+        >
+          Applications
+          {filter === "pending" && applications.length > 0 && (
+            <span className={`ml-2 h-5 w-5 inline-flex items-center justify-center rounded-full text-xs font-bold ${tab === "applications" ? "bg-white text-[#ff6fae]" : "bg-[#ff6fae] text-white"}`}>
+              {applications.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setTab("active")}
+          className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition ${tab === "active" ? "bg-[#ff6fae] text-white shadow-lg shadow-pink-200" : "bg-white text-gray-600 border border-gray-200 hover:border-[#ff6fae]"}`}
+        >
+          Active Caregivers
         </button>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500" width="16" height="16" viewBox="0 0 24 24" fill="none">
-          <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
-          <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        </svg>
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search caregivers..." className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 bg-white shadow-sm text-sm focus:outline-none focus:border-[#ff6fae]"/>
-      </div>
-
-      {/* Table */}
-      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                <th className="px-5 py-3 text-left font-medium text-gray-600">Caregiver</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden sm:table-cell">Specialty</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden md:table-cell">Bookings</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600 hidden lg:table-cell">Rating</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600">Status</th>
-                <th className="px-5 py-3 text-left font-medium text-gray-600">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filtered.map(cg => (
-                <tr key={cg.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-3">
-                      {cg.avatar ? (
-                        <img src={cg.avatar} alt={cg.name} className="h-10 w-10 rounded-full object-cover"/>
-                      ) : (
-                        <div className="h-10 w-10 rounded-full bg-[#ff6fae]/20 flex items-center justify-center text-[#ff6fae] font-bold">{cg.name[0]}</div>
-                      )}
-                      <div>
-                        <p className="font-semibold text-gray-900 flex items-center gap-1">
-                          {cg.name}
-                          {cg.verified && <span title="Verified" className="text-blue-500 text-xs">✓</span>}
-                        </p>
-                        <p className="text-xs text-gray-600">Joined {cg.joined}</p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4 text-gray-600 hidden sm:table-cell">{cg.specialty}</td>
-                  <td className="px-5 py-4 font-bold text-gray-900 hidden md:table-cell">{cg.bookings}</td>
-                  <td className="px-5 py-4 hidden lg:table-cell">
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-400">★</span>
-                      <span className="font-semibold text-gray-900">{cg.rating}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${cg.status === "Active" ? "bg-green-100 text-green-700" : "bg-gray-100 text-gray-600"}`}>
-                      {cg.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => toggleStatus(cg.id)}
-                        className={`text-xs font-medium px-3 py-1 rounded-full transition ${cg.status === "Active" ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-green-50 text-green-600 hover:bg-green-100"}`}
-                      >
-                        {cg.status === "Active" ? "Deactivate" : "Activate"}
-                      </button>
-                      <button className="text-xs font-medium px-3 py-1 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 transition">Edit</button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Add Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
-            <h3 className="font-bold text-gray-900 text-lg mb-4">Add New Caregiver</h3>
-            <div className="space-y-3">
-              <input placeholder="Full Name" value={newCg.name} onChange={e => setNewCg(p => ({ ...p, name: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]"/>
-              <select value={newCg.specialty} onChange={e => setNewCg(p => ({ ...p, specialty: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]">
-                <option>Elderly Care</option>
-                <option>Baby Sitting</option>
-                <option>Patient Care</option>
-                <option>Special Needs</option>
-              </select>
-              <input placeholder="Phone Number" value={newCg.phone} onChange={e => setNewCg(p => ({ ...p, phone: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]"/>
-            </div>
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setShowModal(false)} className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600">Cancel</button>
-              <button onClick={addCg} className="flex-1 rounded-xl bg-[#ff6fae] py-2.5 text-sm font-semibold text-white hover:brightness-95 transition">Add Caregiver</button>
-            </div>
+      {/* Applications Tab */}
+      {tab === "applications" && (
+        <>
+          {/* Status filter */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {["pending", "approved", "rejected"].map(s => (
+              <button
+                key={s}
+                onClick={() => setFilter(s)}
+                className={`px-4 py-1.5 rounded-full text-sm font-medium capitalize transition ${filter === s ? "bg-gray-900 text-white" : "bg-white text-gray-600 border border-gray-200 hover:border-gray-400"}`}
+              >
+                {s}
+              </button>
+            ))}
           </div>
+
+          {/* Search */}
+          <div className="relative mb-4">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+            </svg>
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="Search by name or email..."
+              className="w-full pl-9 pr-4 py-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:border-[#ff6fae]"
+            />
+          </div>
+
+          {/* Applications List */}
+          {loading ? (
+            <div className="space-y-3">
+              {[1,2,3].map(i => <div key={i} className="h-24 rounded-2xl bg-white animate-pulse border border-gray-100"/>)}
+            </div>
+          ) : filtered.length === 0 ? (
+            <div className="text-center py-20 text-gray-400">
+              <p className="text-4xl mb-3">📭</p>
+              <p className="font-medium">No {filter} applications</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {filtered.map(app => (
+                <div key={app._id} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                    {/* Avatar */}
+                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#ff6fae] to-[#e0508f] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                      {app.name?.[0]?.toUpperCase() || "C"}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                        <h3 className="font-bold text-gray-900">{app.name}</h3>
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full capitalize ${statusColors[app.status]}`}>
+                          {app.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">{app.email} · {app.phone}</p>
+                      <div className="flex flex-wrap gap-2 mt-1.5">
+                        <span className="text-xs bg-pink-50 text-[#ff6fae] px-2 py-0.5 rounded-full font-medium">{app.specialty}</span>
+                        {app.experience && (
+                          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">{app.experience} exp</span>
+                        )}
+                        <span className="text-xs text-gray-400">
+                          Applied {new Date(app.createdAt).toLocaleDateString()}
+                        </span>
+                      </div>
+                      {app.about && (
+                        <p className="text-xs text-gray-500 mt-2 line-clamp-2 italic">"{app.about}"</p>
+                      )}
+                    </div>
+
+                    {/* Actions */}
+                    {app.status === "pending" && (
+                      <div className="flex gap-2 flex-shrink-0">
+                        <button
+                          onClick={() => updateStatus(app._id, "approved")}
+                          disabled={updating === app._id}
+                          className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-bold hover:brightness-95 transition disabled:opacity-60"
+                        >
+                          {updating === app._id ? "..." : "✓ Approve"}
+                        </button>
+                        <button
+                          onClick={() => updateStatus(app._id, "rejected")}
+                          disabled={updating === app._id}
+                          className="px-4 py-2 rounded-xl bg-red-500 text-white text-xs font-bold hover:brightness-95 transition disabled:opacity-60"
+                        >
+                          {updating === app._id ? "..." : "✕ Reject"}
+                        </button>
+                      </div>
+                    )}
+
+                    {app.status === "approved" && (
+                      <span className="text-green-600 text-sm font-semibold flex-shrink-0">✓ Approved</span>
+                    )}
+                    {app.status === "rejected" && (
+                      <span className="text-red-500 text-sm font-semibold flex-shrink-0">✕ Rejected</span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Active Caregivers Tab */}
+      {tab === "active" && (
+        <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+          <p className="text-gray-500 text-sm text-center py-8">
+            Approved caregivers will appear here after approval.
+          </p>
         </div>
       )}
     </div>

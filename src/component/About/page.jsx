@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 
 const About = () => {
     const [activeTab, setActiveTab] = useState("mission");
@@ -99,9 +100,9 @@ const About = () => {
             About Us
           </h1>
           <div className="mt-2 flex items-center gap-2 text-sm text-[#8b0955] sm:text-sm">
-            <a href="/" className="hover:text-white">
+                        <Link href="/" className="hover:text-white">
               Home
-            </a>
+                        </Link>
             <span>&gt;</span>
             <span>About Us</span>
           </div>

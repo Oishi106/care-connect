@@ -1,3 +1,5 @@
-"use client";
-import { AdminPaymentsPage } from "@/component/Dashboard/Admin/AdminOtherPages";
-export default function Page() { return <AdminPaymentsPage />; }
+﻿import AdminPaymentsPage from "@/component/Dashboard/Admin/Adminpaymentspage";
+
+export default function Page() {
+	return <AdminPaymentsPage />;
+}

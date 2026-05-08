@@ -86,16 +86,15 @@ export default function BookService() {
     const loadServices = async () => {
       try {
         const remoteServices = await fetchServices();
-        if (mounted && remoteServices.length > 0) {
+        if (mounted) {
           setServices(remoteServices);
           return;
         }
       } catch {
         // Use fallback services if API is unavailable.
-      }
-
-      if (mounted) {
-        setServices(fallbackServices);
+        if (mounted) {
+          setServices(fallbackServices);
+        }
       }
     };
 
@@ -105,8 +104,13 @@ export default function BookService() {
       }
     });
 
+    const intervalId = setInterval(() => {
+      loadServices();
+    }, 10000);
+
     return () => {
       mounted = false;
+      clearInterval(intervalId);
     };
   }, []);
 

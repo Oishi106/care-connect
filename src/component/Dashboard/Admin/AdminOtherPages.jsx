@@ -1,60 +1,260 @@
 "use client";
-import React, { useState } from "react";
+
+import React, { useEffect, useMemo, useState } from "react";
+import RealTimeAdminPaymentsPage from "./Adminpaymentspage";
 
 export function AdminServicesPage() {
-  const [services, setServices] = useState([
-    { id: 1, name: "Elderly Care", price: 15, active: true, bookings: 420, icon: "👴" },
-    { id: 2, name: "Baby Sitting", price: 12, active: true, bookings: 310, icon: "👶" },
-    { id: 3, name: "Patient Care", price: 18, active: true, bookings: 280, icon: "🏥" },
-    { id: 4, name: "Special Needs", price: 20, active: false, bookings: 95, icon: "💝" },
-  ]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [savingId, setSavingId] = useState("");
+  const [search, setSearch] = useState("");
+  const [error, setError] = useState("");
   const [showAdd, setShowAdd] = useState(false);
-  const [newSvc, setNewSvc] = useState({ name: "", price: "", icon: "❤️" });
+  const [newSvc, setNewSvc] = useState({
+    title: "",
+    description: "",
+    category: "Home",
+    price: "",
+    image: "",
+    badge: "",
+    icon: "✨",
+  });
 
-  const toggle = id => setServices(prev => prev.map(s => s.id === id ? { ...s, active: !s.active } : s));
-  const add = () => {
-    if (!newSvc.name || !newSvc.price) return;
-    setServices(prev => [...prev, { id: Date.now(), ...newSvc, price: Number(newSvc.price), active: true, bookings: 0 }]);
-    setShowAdd(false); setNewSvc({ name: "", price: "", icon: "❤️" });
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadServices = async () => {
+      try {
+        const response = await fetch("/api/services?includeInactive=true", { cache: "no-store" });
+        const data = response.ok ? await response.json() : [];
+
+        if (!isMounted) return;
+
+        setServices(Array.isArray(data) ? data : []);
+        setError("");
+      } catch {
+        if (isMounted) {
+          setServices([]);
+          setError("Unable to load services right now.");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadServices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const filteredServices = useMemo(() => {
+    const query = search.trim().toLowerCase();
+
+    return services.filter((service) => {
+      if (!query) return true;
+
+      return [service.title, service.description, service.category, service.badge]
+        .filter(Boolean)
+        .some((value) => String(value).toLowerCase().includes(query));
+    });
+  }, [search, services]);
+
+  const stats = [
+    { label: "Total Services", value: services.length },
+    { label: "Active", value: services.filter((service) => service.active !== false).length },
+    { label: "Hidden", value: services.filter((service) => service.active === false).length },
+    { label: "Categories", value: new Set(services.map((service) => service.category)).size },
+  ];
+
+  const add = async () => {
+    const payload = {
+      title: newSvc.title,
+      description: newSvc.description,
+      category: newSvc.category,
+      price: newSvc.price,
+      image: newSvc.image,
+      badge: newSvc.badge,
+      icon: newSvc.icon,
+      active: true,
+    };
+
+    if (!payload.title || !payload.description || !payload.image || !payload.price) {
+      setError("Title, description, image and price are required.");
+      return;
+    }
+
+    try {
+      setSavingId("new");
+      const response = await fetch("/api/services", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to create service.");
+      }
+
+      setServices((prev) => [data, ...prev]);
+      setShowAdd(false);
+      setNewSvc({ title: "", description: "", category: "Home", price: "", image: "", badge: "", icon: "✨" });
+      setError("");
+    } catch (err) {
+      setError(err.message || "Unable to create service.");
+    } finally {
+      setSavingId("");
+    }
+  };
+
+  const toggleActive = async (service) => {
+    try {
+      setSavingId(service._id);
+      const response = await fetch(`/api/services/${service._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ active: service.active === false }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to update service.");
+      }
+
+      setServices((prev) => prev.map((item) => (item._id === service._id ? data : item)));
+      setError("");
+    } catch (err) {
+      setError(err.message || "Unable to update service.");
+    } finally {
+      setSavingId("");
+    }
+  };
+
+  const removeService = async (service) => {
+    if (!window.confirm(`Delete ${service.title}?`)) {
+      return;
+    }
+
+    try {
+      setSavingId(service._id);
+      const response = await fetch(`/api/services/${service._id}`, { method: "DELETE" });
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to delete service.");
+      }
+
+      setServices((prev) => prev.filter((item) => item._id !== service._id));
+      setError("");
+    } catch (err) {
+      setError(err.message || "Unable to delete service.");
+    } finally {
+      setSavingId("");
+    }
   };
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-6">
-        <div><h1 className="text-2xl font-bold text-gray-950">Services</h1><p className="mt-1 text-sm text-gray-600">Manage care service offerings</p></div>
+      <div className="flex flex-col gap-4 mb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-950">Services</h1>
+          <p className="mt-1 text-sm text-gray-600">Manage care service offerings in real time</p>
+        </div>
         <button onClick={() => setShowAdd(true)} className="rounded-xl bg-[#ff6fae] px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95">+ Add Service</button>
       </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
-        {services.map(s => (
-          <div key={s.id} className={`rounded-2xl bg-white border-2 shadow-sm p-5 transition ${s.active ? "border-gray-100" : "border-gray-100 opacity-60"}`}>
-            <div className="flex items-start justify-between mb-3">
-              <span className="text-3xl">{s.icon}</span>
-              <button onClick={() => toggle(s.id)} className={`relative w-10 h-5 rounded-full transition ${s.active ? "bg-[#ff6fae]" : "bg-gray-200"}`}>
-                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${s.active ? "left-5" : "left-0.5"}`}></span>
-              </button>
-            </div>
-            <h3 className="font-bold text-gray-900">{s.name}</h3>
-            <p className="mt-1 text-2xl font-bold text-[#ff6fae]">${s.price}<span className="text-sm font-normal text-gray-600">/hr</span></p>
-            <p className="mt-2 text-xs text-gray-600">{s.bookings} total bookings</p>
-            <div className="flex gap-2 mt-3">
-              <button className="flex-1 text-xs rounded-lg border border-gray-200 py-1.5 text-gray-600 hover:bg-gray-50">Edit</button>
-              <button className="flex-1 text-xs rounded-lg border border-red-200 py-1.5 text-red-500 hover:bg-red-50">Delete</button>
-            </div>
+
+      {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {stats.map((stat) => (
+          <div key={stat.label} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
+            <p className="text-2xl font-bold text-gray-900">{loading ? "..." : stat.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{stat.label}</p>
           </div>
         ))}
       </div>
 
+      <div className="mb-4">
+        <div className="relative">
+          <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" strokeWidth="2" />
+            <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search services by name, category or badge..."
+            className="w-full rounded-xl border border-gray-200 bg-white pl-9 pr-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]"
+          />
+        </div>
+      </div>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-5 mb-8">
+        {loading ? (
+          [...Array(6)].map((_, index) => <div key={index} className="h-72 rounded-2xl bg-white border border-gray-100 shadow-sm animate-pulse" />)
+        ) : filteredServices.length === 0 ? (
+          <div className="col-span-full rounded-2xl bg-white border border-gray-100 p-10 text-center text-gray-400">No services found</div>
+        ) : (
+          filteredServices.map((service) => (
+          <div key={service._id} className={`rounded-2xl bg-white border-2 shadow-sm p-5 transition ${service.active ? "border-gray-100" : "border-gray-100 opacity-60"}`}>
+            <div className="flex items-start justify-between mb-3">
+              <span className="text-3xl">{service.icon || "✨"}</span>
+              <button onClick={() => toggleActive(service)} disabled={savingId === service._id} className={`relative w-10 h-5 rounded-full transition ${service.active ? "bg-[#ff6fae]" : "bg-gray-200"}`}>
+                <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${service.active ? "left-5" : "left-0.5"}`} />
+              </button>
+            </div>
+            <h3 className="font-bold text-gray-900">{service.title}</h3>
+            <p className="mt-1 text-sm text-gray-600 line-clamp-2">{service.description}</p>
+            <p className="mt-2 text-2xl font-bold text-[#ff6fae]">${Number(service.price || 0)}<span className="text-sm font-normal text-gray-600">/hr</span></p>
+            <div className="mt-3 flex flex-wrap gap-2 text-xs">
+              <span className="rounded-full bg-gray-100 px-2.5 py-1 text-gray-700">{service.category}</span>
+              <span className={`rounded-full px-2.5 py-1 font-semibold ${service.active === false ? "bg-yellow-100 text-yellow-700" : "bg-green-100 text-green-700"}`}>
+                {service.active === false ? "Hidden" : "Active"}
+              </span>
+              {service.badge && <span className="rounded-full bg-pink-100 px-2.5 py-1 font-semibold text-[#ff6fae]">{service.badge}</span>}
+            </div>
+            <div className="flex gap-2 mt-3">
+              <button onClick={() => toggleActive(service)} disabled={savingId === service._id} className="flex-1 text-xs rounded-lg border border-gray-200 py-1.5 text-gray-600 hover:bg-gray-50 disabled:opacity-60">
+                {service.active === false ? "Show" : "Hide"}
+              </button>
+              <button onClick={() => removeService(service)} disabled={savingId === service._id} className="flex-1 text-xs rounded-lg border border-red-200 py-1.5 text-red-500 hover:bg-red-50 disabled:opacity-60">Delete</button>
+            </div>
+          </div>
+          ))
+        )}
+      </div>
+
       {showAdd && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-2xl">
+          <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
             <h3 className="font-bold text-gray-900 mb-4">Add New Service</h3>
             <div className="space-y-3">
-              <input placeholder="Service Name" value={newSvc.name} onChange={e => setNewSvc(p => ({ ...p, name: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]"/>
-              <input type="number" placeholder="Price per hour ($)" value={newSvc.price} onChange={e => setNewSvc(p => ({ ...p, price: e.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]"/>
+              <input placeholder="Service Name" value={newSvc.title} onChange={(event) => setNewSvc((prev) => ({ ...prev, title: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+              <textarea placeholder="Description" rows={3} value={newSvc.description} onChange={(event) => setNewSvc((prev) => ({ ...prev, description: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <select value={newSvc.category} onChange={(event) => setNewSvc((prev) => ({ ...prev, category: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]">
+                  <option>Home</option>
+                  <option>Senior Care</option>
+                  <option>Child Care</option>
+                  <option>Medical</option>
+                  <option>Support</option>
+                  <option>Personal</option>
+                </select>
+                <input type="number" placeholder="Price per hour ($)" value={newSvc.price} onChange={(event) => setNewSvc((prev) => ({ ...prev, price: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+              </div>
+              <input placeholder="Image URL" value={newSvc.image} onChange={(event) => setNewSvc((prev) => ({ ...prev, image: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input placeholder="Badge (optional)" value={newSvc.badge} onChange={(event) => setNewSvc((prev) => ({ ...prev, badge: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+                <input placeholder="Icon (optional)" value={newSvc.icon} onChange={(event) => setNewSvc((prev) => ({ ...prev, icon: event.target.value }))} className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:outline-none focus:border-[#ff6fae]" />
+              </div>
             </div>
             <div className="flex gap-3 mt-4">
               <button onClick={() => setShowAdd(false)} className="flex-1 rounded-xl border border-gray-200 py-2.5 text-sm font-semibold text-gray-600">Cancel</button>
-              <button onClick={add} className="flex-1 rounded-xl bg-[#ff6fae] py-2.5 text-sm font-semibold text-white hover:brightness-95">Add</button>
+              <button onClick={add} disabled={savingId === "new"} className="flex-1 rounded-xl bg-[#ff6fae] py-2.5 text-sm font-semibold text-white hover:brightness-95 disabled:opacity-60">{savingId === "new" ? "Adding..." : "Add"}</button>
             </div>
           </div>
         </div>
@@ -64,92 +264,122 @@ export function AdminServicesPage() {
 }
 
 export function AdminPaymentsPage() {
-  const transactions = [
-    { id: "TXN101", user: "Fatima Ahmed", caregiver: "Tanvir Hossain", amount: "$120", date: "May 10, 2026", method: "Visa Card", status: "Completed" },
-    { id: "TXN102", user: "Karim Reza", caregiver: "Maya Islam", amount: "$48", date: "May 11, 2026", method: "bKash", status: "Pending" },
-    { id: "TXN103", user: "Nadia Islam", caregiver: "Sophie Rahman", amount: "$180", date: "May 12, 2026", method: "Visa Card", status: "Completed" },
-    { id: "TXN104", user: "Sumaiya Begum", caregiver: "Farhana Akter", amount: "$140", date: "May 14, 2026", method: "Nagad", status: "Completed" },
-    { id: "TXN105", user: "Rahim Khan", caregiver: "Arif Chowdhury", amount: "$160", date: "May 8, 2026", method: "Visa Card", status: "Refunded" },
-  ];
-  const statusColors = { Completed: "bg-green-100 text-green-700", Pending: "bg-yellow-100 text-yellow-700", Refunded: "bg-blue-100 text-blue-700", Failed: "bg-red-100 text-red-700" };
-
-  return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-950">Payments</h1><p className="mt-1 text-sm text-gray-600">All platform transactions</p></div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {[
-          { label: "Total Revenue", value: "$18,640", color: "text-[#ff6fae]" },
-          { label: "This Month", value: "$3,248", color: "text-green-600" },
-          { label: "Pending", value: "$482", color: "text-yellow-600" },
-          { label: "Refunded", value: "$320", color: "text-blue-600" },
-        ].map((s, i) => (
-          <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
-            <p className={`text-2xl font-bold ${s.color}`}>{s.value}</p>
-            <p className="mt-0.5 text-xs text-gray-600">{s.label}</p>
-          </div>
-        ))}
-      </div>
-      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b border-gray-100">
-              <tr>
-                {["ID", "User", "Caregiver", "Method", "Date", "Status", "Amount"].map(h => <th key={h} className="px-5 py-3 text-left font-medium text-gray-600">{h}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map(tx => (
-                <tr key={tx.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
-                  <td className="px-5 py-3 font-mono text-xs text-gray-600">{tx.id}</td>
-                  <td className="px-5 py-3 font-medium text-gray-900">{tx.user}</td>
-                  <td className="px-5 py-3 text-gray-600">{tx.caregiver}</td>
-                  <td className="px-5 py-3 text-gray-700">{tx.method}</td>
-                  <td className="px-5 py-3 text-xs text-gray-700">{tx.date}</td>
-                  <td className="px-5 py-3"><span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${statusColors[tx.status]}`}>{tx.status}</span></td>
-                  <td className="px-5 py-3 font-bold text-gray-900">{tx.amount}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
+  return <RealTimeAdminPaymentsPage />;
 }
 
 export function AdminReportsPage() {
-  const monthlyData = [
-    { month: "Jan", revenue: 12400, bookings: 248 },
-    { month: "Feb", revenue: 14800, bookings: 296 },
-    { month: "Mar", revenue: 11900, bookings: 238 },
-    { month: "Apr", revenue: 16500, bookings: 330 },
-    { month: "May", revenue: 18640, bookings: 373 },
-  ];
-  const maxRevenue = Math.max(...monthlyData.map(m => m.revenue));
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [lastUpdated, setLastUpdated] = useState(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadReportData = async () => {
+      try {
+        const response = await fetch("/api/admin/payments", { cache: "no-store" });
+        const data = response.ok ? await response.json() : [];
+
+        if (!isMounted) return;
+
+        setRecords(Array.isArray(data) ? data : []);
+        setLastUpdated(new Date());
+      } catch {
+        if (isMounted) setRecords([]);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    loadReportData();
+    const intervalId = setInterval(loadReportData, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  const currentYear = new Date().getFullYear();
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const paidRecords = records.filter((record) => record.status === "paid");
+
+  const monthlyData = months.map((month, index) => {
+    const monthRecords = paidRecords.filter((record) => {
+      if (!record.createdAt) return false;
+      const date = new Date(record.createdAt);
+      return date.getMonth() === index && date.getFullYear() === currentYear;
+    });
+
+    return {
+      month,
+      revenue: monthRecords.reduce((sum, record) => sum + Number(record.amount || 0), 0),
+      count: monthRecords.length,
+    };
+  });
+
+  const maxRevenue = Math.max(...monthlyData.map((month) => month.revenue), 1);
+  const totalRevenue = paidRecords.reduce((sum, record) => sum + Number(record.amount || 0), 0);
+  const totalRefunded = records.filter((record) => record.status === "refunded").reduce((sum, record) => sum + Number(record.amount || 0), 0);
+  const totalPending = records.filter((record) => record.status === "pending").reduce((sum, record) => sum + Number(record.amount || 0), 0);
+  const thisMonthRecords = records.filter((record) => {
+    if (!record.createdAt) return false;
+    const date = new Date(record.createdAt);
+    const now = new Date();
+    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
+  });
+  const thisMonthRevenue = thisMonthRecords.reduce((sum, record) => sum + Number(record.amount || 0), 0);
+  const totalBookings = records.length;
+
+  const serviceSummaryMap = records.reduce((accumulator, record) => {
+    const serviceName = record.serviceTitle || "Care Service";
+    if (!accumulator[serviceName]) {
+      accumulator[serviceName] = { service: serviceName, count: 0, revenue: 0 };
+    }
+
+    accumulator[serviceName].count += 1;
+    accumulator[serviceName].revenue += Number(record.amount || 0);
+    return accumulator;
+  }, {});
+
+  const bookingsByService = Object.values(serviceSummaryMap).sort((left, right) => right.count - left.count).slice(0, 8);
+
+  const bookingsByStatusMap = records.reduce((accumulator, record) => {
+    const status = record.status || "unknown";
+    accumulator[status] = (accumulator[status] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  const bookingsByStatus = Object.entries(bookingsByStatusMap).map(([status, count]) => ({ status, count })).sort((left, right) => right.count - left.count);
+  const topService = bookingsByService[0]?.service || "—";
+  const paidSessions = paidRecords.length;
+  const serviceColors = ["#ff6fae", "#3b82f6", "#10b981", "#8b5cf6", "#f59e0b", "#f43f5e", "#14b8a6", "#6366f1"];
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
-      <div className="mb-6"><h1 className="text-2xl font-bold text-gray-950">Reports & Analytics</h1><p className="mt-1 text-sm text-gray-600">Platform performance overview</p></div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-950">Reports & Analytics</h1>
+        <p className="mt-1 text-sm text-gray-600">Platform performance overview</p>
+        <p className="mt-1 text-xs text-gray-400">{loading ? "Syncing live metrics..." : `Last updated ${lastUpdated ? lastUpdated.toLocaleTimeString() : "just now"}`}</p>
+      </div>
 
-      {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Revenue", value: "$74,240", change: "+18% YoY", up: true },
-          { label: "Total Bookings", value: "3,492", change: "+24% YoY", up: true },
-          { label: "User Retention", value: "82%", change: "+5% vs Q1", up: true },
-          { label: "Avg. Booking Value", value: "$128", change: "+$12 vs Q1", up: true },
-        ].map((k, i) => (
-          <div key={i} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
-            <p className="text-2xl font-bold text-gray-900">{k.value}</p>
-            <p className="mt-0.5 text-xs text-gray-600">{k.label}</p>
-            <p className="text-xs text-green-600 mt-1">↑ {k.change}</p>
+          { label: "Total Revenue", value: `$${totalRevenue.toFixed(0)}`, change: "Live cumulative revenue" },
+          { label: "Total Bookings", value: String(totalBookings), change: "All payment records" },
+          { label: "Paid Sessions", value: String(paidSessions), change: "Successful payments only" },
+          { label: "Top Service", value: topService, change: "Most booked service" },
+        ].map((kpi, index) => (
+          <div key={index} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
+            <p className="text-2xl font-bold text-gray-900 truncate">{loading ? "..." : kpi.value}</p>
+            <p className="mt-0.5 text-xs text-gray-600">{kpi.label}</p>
+            <p className="text-xs text-green-600 mt-1">↑ {kpi.change}</p>
           </div>
         ))}
       </div>
 
-      {/* Revenue Chart */}
       <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6 mb-6">
-        <h2 className="font-bold text-gray-900 mb-4">Revenue by Month (2026)</h2>
+        <h2 className="font-bold text-gray-900 mb-4">Revenue by Month ({currentYear})</h2>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -161,14 +391,14 @@ export function AdminReportsPage() {
               </tr>
             </thead>
             <tbody>
-              {monthlyData.map(m => (
-                <tr key={m.month} className="border-b border-gray-50">
-                  <td className="py-3 font-medium text-gray-900">{m.month}</td>
-                  <td className="py-3 font-bold text-green-600">${m.revenue.toLocaleString()}</td>
-                  <td className="py-3 text-gray-600">{m.bookings}</td>
+              {monthlyData.map((month) => (
+                <tr key={month.month} className="border-b border-gray-50">
+                  <td className="py-3 font-medium text-gray-900">{month.month}</td>
+                  <td className="py-3 font-bold text-green-600">${month.revenue.toLocaleString()}</td>
+                  <td className="py-3 text-gray-600">{month.count}</td>
                   <td className="py-3">
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-[#ff6fae] rounded-full" style={{ width: `${(m.revenue / maxRevenue) * 100}%` }}></div>
+                      <div className="h-full bg-[#ff6fae] rounded-full" style={{ width: `${(month.revenue / maxRevenue) * 100}%` }} />
                     </div>
                   </td>
                 </tr>
@@ -178,26 +408,72 @@ export function AdminReportsPage() {
         </div>
       </div>
 
-      {/* Service Breakdown */}
-      <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
-        <h2 className="font-bold text-gray-900 mb-4">Bookings by Service</h2>
-        <div className="space-y-4">
-          {[
-            { service: "Elderly Care", pct: 42, bookings: 1467, color: "bg-blue-400" },
-            { service: "Baby Sitting", pct: 30, bookings: 1048, color: "bg-[#ff6fae]" },
-            { service: "Patient Care", pct: 18, bookings: 629, color: "bg-purple-400" },
-            { service: "Special Needs", pct: 10, bookings: 348, color: "bg-green-400" },
-          ].map(s => (
-            <div key={s.service} className="flex items-center gap-4">
-              <span className="w-28 text-sm text-gray-700 font-medium">{s.service}</span>
-              <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                <div className={`h-full ${s.color} rounded-full`} style={{ width: `${s.pct}%` }}></div>
-              </div>
-              <span className="text-sm font-bold text-gray-900 w-8 text-right">{s.pct}%</span>
-              <span className="w-16 text-right text-xs text-gray-600">{s.bookings} bookings</span>
+      <div className="grid lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+          <h2 className="font-bold text-gray-900 mb-4">Bookings by Service</h2>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3, 4].map((item) => <div key={item} className="h-8 bg-gray-100 rounded animate-pulse" />)}</div>
+          ) : bookingsByService.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-8">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {bookingsByService.map((service, index) => {
+                const pct = totalBookings > 0 ? Math.round((service.count / totalBookings) * 100) : 0;
+                return (
+                  <div key={service.service} className="flex items-center gap-3">
+                    <span className="w-28 text-xs text-gray-700 font-medium truncate shrink-0">{service.service}</span>
+                    <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full transition-all duration-500" style={{ width: `${pct}%`, background: serviceColors[index % serviceColors.length] }} />
+                    </div>
+                    <span className="text-xs font-bold text-gray-900 w-8 text-right">{pct}%</span>
+                    <span className="text-xs text-gray-400 w-12 text-right">{service.count} jobs</span>
+                  </div>
+                );
+              })}
             </div>
-          ))}
+          )}
         </div>
+
+        <div className="rounded-2xl bg-white border border-gray-100 shadow-sm p-6">
+          <h2 className="font-bold text-gray-900 mb-4">Bookings by Status</h2>
+          {loading ? (
+            <div className="space-y-3">{[1, 2, 3].map((item) => <div key={item} className="h-8 bg-gray-100 rounded animate-pulse" />)}</div>
+          ) : bookingsByStatus.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-8">No data yet</p>
+          ) : (
+            <div className="space-y-3">
+              {bookingsByStatus.map((statusItem) => {
+                const pct = totalBookings > 0 ? Math.round((statusItem.count / totalBookings) * 100) : 0;
+                const colors = { paid: "#10b981", pending: "#f59e0b", refunded: "#3b82f6", failed: "#ef4444" };
+
+                return (
+                  <div key={statusItem.status} className="flex items-center gap-3">
+                    <span className="w-24 text-xs text-gray-700 font-medium shrink-0 capitalize">{statusItem.status}</span>
+                    <div className="flex-1 h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                      <div className="h-full rounded-full" style={{ width: `${pct}%`, background: colors[statusItem.status] || "#9ca3af" }} />
+                    </div>
+                    <span className="text-xs font-bold text-gray-900 w-8 text-right">{statusItem.count}</span>
+                    <span className="text-xs text-gray-400 w-8 text-right">{pct}%</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="mt-6 grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: "This Month Revenue", value: `$${thisMonthRevenue.toFixed(0)}` },
+          { label: "Refunded", value: `$${totalRefunded.toFixed(0)}` },
+          { label: "Pending", value: `$${totalPending.toFixed(0)}` },
+          { label: "Live Records", value: String(records.length) },
+        ].map((item, index) => (
+          <div key={index} className="rounded-xl bg-white border border-gray-100 shadow-sm p-4">
+            <p className="text-2xl font-bold text-gray-900">{loading ? "..." : item.value}</p>
+            <p className="text-xs text-gray-500 mt-0.5">{item.label}</p>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -216,12 +492,15 @@ export function AdminSettingsPage() {
     emailVerification: true,
   });
 
-  const toggle = key => setSettings(p => ({ ...p, [key]: !p[key] }));
-  const save = () => { setSaved(true); setTimeout(() => setSaved(false), 2000); };
+  const toggle = (key) => setSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  const save = () => {
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
+  };
 
   const Toggle = ({ checked, onChange }) => (
     <button onClick={onChange} className={`relative w-10 h-5 rounded-full transition ${checked ? "bg-[#ff6fae]" : "bg-gray-200"}`}>
-      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${checked ? "left-5" : "left-0.5"}`}></span>
+      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${checked ? "left-5" : "left-0.5"}`} />
     </button>
   );
 
@@ -244,12 +523,12 @@ export function AdminSettingsPage() {
               { label: "Contact Phone", key: "phone" },
               { label: "Address", key: "address" },
               { label: "Commission Rate (%)", key: "commissionRate" },
-            ].map(f => (
-              <div key={f.key}>
-                <label className="mb-1 block text-xs font-medium text-gray-700">{f.label}</label>
+            ].map((field) => (
+              <div key={field.key}>
+                <label className="mb-1 block text-xs font-medium text-gray-700">{field.label}</label>
                 <input
-                  value={settings[f.key]}
-                  onChange={e => setSettings(p => ({ ...p, [f.key]: e.target.value }))}
+                  value={settings[field.key]}
+                  onChange={(event) => setSettings((prev) => ({ ...prev, [field.key]: event.target.value }))}
                   className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-[#ff6fae] focus:ring-2 focus:ring-[#ff6fae]/20"
                 />
               </div>
@@ -261,22 +540,21 @@ export function AdminSettingsPage() {
           <h3 className="mb-4 font-bold text-gray-950">Platform Controls</h3>
           <div className="space-y-4">
             {[
-              { key: "autoApprove", label: "Auto-approve Bookings", desc: "Skip manual review for new bookings" },
-              { key: "emailVerification", label: "Require Email Verification", desc: "Users must verify email on signup" },
-              { key: "maintenanceMode", label: "Maintenance Mode", desc: "Take the platform offline temporarily" },
-            ].map(item => (
-              <div key={item.key} className="flex items-center justify-between">
+              { label: "Auto Approve Bookings", key: "autoApprove" },
+              { label: "Maintenance Mode", key: "maintenanceMode" },
+              { label: "Email Verification", key: "emailVerification" },
+            ].map((field) => (
+              <div key={field.key} className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-gray-900">{item.label}</p>
-                  <p className="text-xs text-gray-600">{item.desc}</p>
+                  <p className="font-medium text-gray-900">{field.label}</p>
+                  <p className="text-xs text-gray-500">Toggle this platform setting</p>
                 </div>
-                <Toggle checked={settings[item.key]} onChange={() => toggle(item.key)} />
+                <Toggle checked={settings[field.key]} onChange={() => toggle(field.key)} />
               </div>
             ))}
           </div>
+          <button onClick={save} className="mt-6 rounded-xl bg-[#ff6fae] px-5 py-2.5 text-sm font-semibold text-white hover:brightness-95">Save Settings</button>
         </div>
-
-        <button onClick={save} className="w-full rounded-xl bg-[#ff6fae] py-3 font-semibold text-white shadow-lg shadow-pink-200 transition hover:brightness-95">Save Settings</button>
       </div>
     </div>
   );

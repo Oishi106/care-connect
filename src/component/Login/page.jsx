@@ -1,4 +1,5 @@
 "use client";
+/* eslint-disable @next/next/no-img-element */
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -17,6 +18,7 @@ const Login = () => {
   const searchParams = useSearchParams();
   const requestedCallbackUrl = searchParams.get("callbackUrl") || "/dashboard/user";
   const callbackUrl = requestedCallbackUrl.startsWith("/") ? requestedCallbackUrl : "/dashboard/user";
+  const caregiverApplied = searchParams.get("caregiverApplied") === "1";
 
   const loginModes = {
     user: {
@@ -163,6 +165,11 @@ const Login = () => {
                 )}
               </div>
 
+                {caregiverApplied && (
+                  <p className="mt-2 text-xs font-medium text-green-700">
+                    Your caregiver application has been submitted and is waiting for admin approval.
+                  </p>
+                )}
               {errorMessage && (
                 <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
                   {errorMessage}
@@ -255,6 +262,21 @@ const Login = () => {
                   {isSubmitting ? "Signing in..." : activeMode.buttonText}
                 </button>
               </form>
+
+              <div className="mt-6 rounded-2xl border border-dashed border-[#ff6fae]/30 bg-[#ff6fae]/5 p-4 sm:p-5">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold text-[#ab126b]">Want to be a caregiver?</p>
+                    <p className="mt-1 text-sm text-gray-600">Open a separate application page and submit your details for admin review.</p>
+                  </div>
+                  <Link
+                    href="/caregiver/apply"
+                    className="inline-flex items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#ab126b] shadow-sm transition hover:bg-pink-50"
+                  >
+                    Apply
+                  </Link>
+                </div>
+              </div>
 
               {/* Divider */}
               <div className="my-8 flex items-center gap-4">
