@@ -20,9 +20,9 @@ export default function AdminDashboardHome() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`${API}/admin/stats`).then(r=>r.json()).catch(()=>null),
-      fetch(`${API}/admin/bookings?limit=5`).then(r=>r.json()).catch(()=>[]),
-      fetch(`${API}/caregiver-applications?status=pending`).then(r=>r.json()).catch(()=>[]),
+      fetch(`/api/admin/stats`).then(r=>r.json()).catch(()=>null),
+      fetch(`/api/admin/bookings?limit=5`).then(r=>r.json()).catch(()=>[]),
+      fetch(`/api/admin/caregiver-applications?status=pending`).then(r=>r.json()).catch(()=>[]),
     ]).then(([s, b, apps]) => {
       setStats(s);
       setRecentBookings(Array.isArray(b) ? b : []);
@@ -81,7 +81,7 @@ export default function AdminDashboardHome() {
       <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-6">
         {statCards.map((s, i) => (
           <div key={i} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-4 hover:shadow-md transition">
-            <div className={`inline-flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br ${s.color} text-lg mb-3`}>{s.icon}</div>
+            <div className={`mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-linear-to-br text-lg ${s.color}`}>{s.icon}</div>
             {loading ? (
               <div className="h-6 w-12 bg-gray-200 rounded animate-pulse mb-1"/>
             ) : (
@@ -158,7 +158,7 @@ export default function AdminDashboardHome() {
                     <tr key={b._id||i} className="border-b border-gray-50 hover:bg-gray-50 transition">
                       <td className="py-3">
                         <p className="font-medium text-gray-900 text-xs">{b.userName || "User"}</p>
-                        <p className="text-xs text-gray-400 truncate max-w-[120px]">{b.userEmail}</p>
+                        <p className="max-w-30 truncate text-xs text-gray-400">{b.userEmail}</p>
                       </td>
                       <td className="py-3 text-gray-600 text-xs hidden sm:table-cell">{b.serviceTitle}</td>
                       <td className="py-3">
@@ -189,14 +189,14 @@ export default function AdminDashboardHome() {
               <div className="space-y-2">
                 {pendingApps.slice(0,4).map((app,i) => (
                   <div key={app._id||i} className="flex items-center gap-2 p-2.5 rounded-xl bg-yellow-50 border border-yellow-100">
-                    <div className="h-8 w-8 rounded-full bg-[#ff6fae] flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ff6fae] text-xs font-bold text-white">
                       {app.name?.[0]?.toUpperCase()||"C"}
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-semibold text-gray-900 truncate">{app.name}</p>
                       <p className="text-xs text-gray-500 truncate">{app.specialty}</p>
                     </div>
-                    <span className="text-xs bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full font-medium flex-shrink-0">New</span>
+                    <span className="shrink-0 rounded-full bg-yellow-200 px-2 py-0.5 text-xs font-medium text-yellow-800">New</span>
                   </div>
                 ))}
                 {pendingApps.length > 4 && (

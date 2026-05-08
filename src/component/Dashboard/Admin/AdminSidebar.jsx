@@ -1,7 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import Link from "next/link";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 import BrandLogo from "../../BrandLogo";
 
@@ -18,6 +18,7 @@ const navItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { data: session } = useSession();
   const [collapsed, setCollapsed] = useState(false);
 
   return (
@@ -42,10 +43,10 @@ export default function AdminSidebar() {
       {!collapsed && (
         <div className="px-4 py-3 border-b border-white/10">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] flex items-center justify-center text-white text-xs font-bold">A</div>
+            <div className="h-8 w-8 rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] flex items-center justify-center text-white text-xs font-bold">{session?.user?.name?.[0]?.toUpperCase() || "A"}</div>
             <div>
-              <p className="text-xs font-semibold text-white">Admin User</p>
-              <p className="text-xs text-white/70">admin@careconnect.com</p>
+              <p className="text-xs font-semibold text-white">{session?.user?.name || "Admin User"}</p>
+              <p className="text-xs text-white/70">{session?.user?.email || "No email"}</p>
             </div>
           </div>
         </div>
