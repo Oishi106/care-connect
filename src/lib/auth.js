@@ -72,6 +72,7 @@ export const authOptions = {
           id: user._id.toString(),
           name: user.name || user.fullName || user.email,
           email: user.email,
+          image: user.profileImage || user.image || null,
           role: userRole,
         };
       },
@@ -84,6 +85,7 @@ export const authOptions = {
         token.role = user.role;
         token.name = user.name;
         token.email = user.email;
+        token.image = user.image || user.picture || null;
       }
 
       if (!token.role && token.email) {
@@ -103,6 +105,7 @@ export const authOptions = {
           token.role = existingUser.role || "user";
           token.name = existingUser.name || token.name;
           token.email = existingUser.email || token.email;
+          token.image = existingUser.profileImage || existingUser.image || token.image || null;
         } else if (account?.provider === "google") {
           const createdUser = await usersCollection.findOneAndUpdate(
             { email: token.email },
@@ -137,6 +140,17 @@ export const authOptions = {
         session.user.role = token.role;
         session.user.name = token.name;
         session.user.email = token.email;
+        session.user.image = token.image || null;
+
+        if (token.email) {
+          const client = await clientPromise;
+          const usersCollection = client.db().collection("users");
+          const latestUser = await usersCollection.findOne({ email: token.email });
+
+          if (latestUser) {
+            session.user.image = latestUser.profileImage || latestUser.image || session.user.image || null;
+          }
+        }
       }
 
       return session;

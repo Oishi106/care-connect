@@ -42,9 +42,18 @@ export default function CaregiverSidebar() {
       {!collapsed && (
         <div className="border-b border-gray-100 px-4 py-4">
           <div className="flex items-center gap-3">                    
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] text-sm font-bold text-white">
-              {avatarFallback}
-            </div>
+            {user?.image ? (
+              <div
+                className="h-10 w-10 rounded-full bg-center bg-cover ring-2 ring-pink-100"
+                style={{ backgroundImage: `url(${user.image})` }}
+                aria-label={displayName}
+                role="img"
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] text-sm font-bold text-white">
+                {avatarFallback}
+              </div>
+            )}
             <div className="min-w-0">       
               <p className="truncate text-sm font-semibold text-gray-900">{displayName}</p>
               <p className="truncate text-xs text-gray-500">{user?.email || "caregiver@careconnect.com"}</p>

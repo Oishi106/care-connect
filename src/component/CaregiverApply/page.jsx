@@ -14,6 +14,7 @@ export default function CaregiverApplyPage() {
   const [phone, setPhone] = useState("");
   const [experience, setExperience] = useState("");
   const [serviceType, setServiceType] = useState("Home Care");
+  const [imageUrl, setImageUrl] = useState("");
   const [bio, setBio] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -45,6 +46,7 @@ export default function CaregiverApplyPage() {
           phone,
           experience,
           serviceType,
+          imageUrl,
           bio,
         }),
       });
@@ -162,6 +164,19 @@ export default function CaregiverApplyPage() {
                 </div>
 
                 <div>
+                  <label htmlFor="imageUrl" className="mb-2 block text-sm font-medium text-gray-700">Profile Image URL</label>
+                  <input
+                    id="imageUrl"
+                    type="url"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50 px-4 py-3.5 text-gray-900 outline-none transition focus:border-[#ff6fae] focus:bg-white focus:ring-2 focus:ring-[#ff6fae]/20"
+                    required
+                  />
+                </div>
+
+                <div>
                   <label htmlFor="bio" className="mb-2 block text-sm font-medium text-gray-700">Short Bio</label>
                   <textarea
                     id="bio"
@@ -218,11 +233,11 @@ export default function CaregiverApplyPage() {
         </div>
 
         <div className="hidden items-center justify-center lg:flex">
-          <div className="relative w-full max-w-xl overflow-hidden rounded-[2rem] bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] p-1 shadow-2xl shadow-pink-200">
-            <div className="rounded-[1.9rem] bg-white p-6 sm:p-8">
+          <div className="relative w-full max-w-xl overflow-hidden rounded-4xl bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] p-1 shadow-2xl shadow-pink-200">
+            <div className="rounded-[1.875rem] bg-white p-6 sm:p-8">
               <div className="overflow-hidden rounded-3xl">
                 <img
-                  src="https://plus.unsplash.com/premium_photo-1682089680688-d463fe6d45ad?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGNoaWxkJTIwY2FyZSUyMHNlcnZpY2luZyUyMHdvbWFufGVufDB8fDB8fHww"
+                  src={imageUrl || "https://plus.unsplash.com/premium_photo-1682089680688-d463fe6d45ad?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTN8fGNoaWxkJTIwY2FyZSUyMHNlcnZpY2luZyUyMHdvbWFufGVufDB8fDB8fHww"}
                   alt="Caregiver application"
                   className="h-80 w-full object-cover"
                 />

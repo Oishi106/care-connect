@@ -12,6 +12,7 @@ export async function POST(request) {
     const phone = body.phone?.trim() || "";
     const experience = body.experience?.trim() || "";
     const serviceType = body.serviceType?.trim() || "";
+    const imageUrl = body.imageUrl?.trim() || "";
     const bio = body.bio?.trim() || "";
 
     if (!fullName || !email || !password) {
@@ -28,9 +29,9 @@ export async function POST(request) {
       );
     }
 
-    if (role === "caregiver" && (!phone || !experience || !serviceType || !bio)) {
+    if (role === "caregiver" && (!phone || !experience || !serviceType || !imageUrl || !bio)) {
       return NextResponse.json(
-        { error: "Phone, experience, service type, and bio are required for caregiver applications." },
+        { error: "Phone, experience, service type, profile image URL, and bio are required for caregiver applications." },
         { status: 400 }
       );
     }
@@ -56,9 +57,11 @@ export async function POST(request) {
       phone: role === "caregiver" ? phone : "",
       experience: role === "caregiver" ? experience : "",
       serviceType: role === "caregiver" ? serviceType : "",
+      specialty: role === "caregiver" ? serviceType : "",
+      profileImage: role === "caregiver" ? imageUrl : "",
+      image: role === "caregiver" ? imageUrl : null,
       bio: role === "caregiver" ? bio : "",
       applicationStatus: role === "caregiver" ? "pending" : "active",
-      image: null,
       emailVerified: null,
       createdAt: new Date(),
       updatedAt: new Date(),

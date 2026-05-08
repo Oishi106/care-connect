@@ -23,6 +23,7 @@ export async function GET(request) {
       email: user.email || "",
       phone: user.phone || "",
       specialty: user.specialty || user.serviceType || user.category || "General Care",
+      image: user.profileImage || user.image || "",
       experience: user.experience || user.yearsOfExperience || "",
       about: user.about || user.bio || "",
       status: user.applicationStatus || "pending",
