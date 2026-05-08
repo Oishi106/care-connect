@@ -21,10 +21,11 @@ export default function Home() {
       <WhyChooseUs />
       <CaregiverSpotlight />
       <FAQ />
-      <Pricing />
+      
       <AdoptionProcess />
       <HealthTips />
       <Testimonials />
+      <Pricing />
       <CTABanner />
     </div>
   );

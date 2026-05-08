@@ -57,10 +57,10 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section className="relative w-full overflow-hidden bg-gray-50 py-20 md:py-28">
+    <section className="relative w-full overflow-hidden bg-linear-to-br from-indigo-50 via-white to-pink-50 py-20 md:py-28">
       {/* Background pattern */}
       <div className="pointer-events-none absolute inset-0"
-        style={{ backgroundImage: "radial-gradient(circle, #e5e7eb 1px, transparent 1px)", backgroundSize: "30px 30px" }}
+        style={{ backgroundImage: "radial-gradient(circle, rgba(99,102,241,0.06) 1px, transparent 1px)", backgroundSize: "34px 34px" }}
       />
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -92,13 +92,13 @@ export default function HowItWorks() {
             <div key={i} className="group relative">
               {/* Connector line */}
               {i < steps.length - 1 && (
-                <div className="absolute top-8 left-full z-10 hidden h-0.5 w-6 bg-gradient-to-r from-gray-300 to-gray-200 lg:block" />
+                <div className="absolute top-8 left-full z-10 hidden h-0.5 w-6 bg-linear-to-r from-gray-300 to-gray-200 lg:block" />
               )}
 
               <div className={`h-full rounded-3xl ${step.bg} p-6 transition-all duration-300 hover:-translate-y-2 hover:shadow-xl border border-white`}>
                 {/* Step number */}
                 <div className="mb-4 flex items-center justify-between">
-                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${step.color} shadow-lg`}>
+                  <div className={`flex h-14 w-14 items-center justify-center rounded-2xl bg-linear-to-br ${step.color} shadow-lg`}>
                     {step.icon}
                   </div>
                   <span className="text-5xl font-black text-gray-100 select-none">{step.step}</span>
@@ -108,7 +108,7 @@ export default function HowItWorks() {
                 <p className="mt-2 text-sm leading-relaxed text-gray-600">{step.desc}</p>
 
                 {/* Bottom accent */}
-                <div className={`mt-5 h-1 w-10 rounded-full bg-gradient-to-r ${step.color} transition-all duration-300 group-hover:w-16`} />
+                <div className={`mt-5 h-1 w-10 rounded-full bg-linear-to-r ${step.color} transition-all duration-300 group-hover:w-16`} />
               </div>
             </div>
           ))}

@@ -7,13 +7,25 @@ const Footer = () => {
             <div className="mx-auto w-full max-w-6xl px-6 py-12">
                 <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4">
                     <div className="space-y-4">
-                        <BrandLogo
-                            width={133}
-                            height={45}
-                            subtitle="Baby & Elderly Care Platform"
-                            subtitleClassName="text-sm text-white/80"
-                            imageClassName=""
-                        />
+                        <div className="flex items-start gap-4">
+                            <div className="relative">
+                                <div className="" />
+                                <div className="relative ">
+                                    <BrandLogo
+                                        width={96}
+                                        height={48}
+                                        subtitle={null}
+                                        imageClassName="h-10 w-10"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <div className="text-lg font-extrabold text-white">Care Connect</div>
+                                <div className="mt-1 text-sm text-white/80">Baby & Elderly Care Platform</div>
+                            </div>
+                        </div>
+
                         <p className="text-white/85">
                             Care Connect is a trusted caregiving platform that helps families find reliable babysitters, elderly caretakers, and home care assistants.
                             We connect trained caregivers with families to make home care simple and safe.
