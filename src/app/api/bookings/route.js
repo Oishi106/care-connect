@@ -35,6 +35,7 @@ export async function POST(request) {
       serviceTitle: body.serviceTitle || "",
       caregiverId: body.caregiverId || "",
       caregiverName: body.caregiverName || "",
+      caregiverEmail: body.caregiverEmail || "",
       date: body.date || "",
       time: body.time || "",
       hours: Number(body.hours || 1),

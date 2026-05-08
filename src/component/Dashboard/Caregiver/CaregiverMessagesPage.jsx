@@ -23,11 +23,7 @@ function formatConvTime(dateStr) {
   return date.toLocaleDateString();
 }
 
-function normalizeEmail(value) {
-  return String(value || "").trim().toLowerCase();
-}
-
-export default function MessagesPage() {
+export default function CaregiverMessagesPage() {
   const { data: session } = useSession();
   const user = session?.user;
 
@@ -47,7 +43,7 @@ export default function MessagesPage() {
 
     let mounted = true;
 
-    fetch(`/api/conversations?email=${encodeURIComponent(user.email)}`)
+    fetch(`/api/conversations?email=${encodeURIComponent(user.email)}&name=${encodeURIComponent(user.name || "")}&role=caregiver`)
       .then((response) => response.json())
       .then((data) => {
         if (!mounted) return;
@@ -107,7 +103,7 @@ export default function MessagesPage() {
 
   const filteredConversations = conversations.filter((conversation) => {
     const query = search.toLowerCase();
-    const name = (conversation.caregiverName || "").toLowerCase();
+    const name = (conversation.userName || "").toLowerCase();
     const service = (conversation.serviceTitle || "").toLowerCase();
     return !query || name.includes(query) || service.includes(query);
   });
@@ -124,10 +120,10 @@ export default function MessagesPage() {
     const payload = {
       conversationId: activeConversation.conversationId,
       bookingId: activeConversation.bookingId,
-      senderEmail: normalizeEmail(user.email),
+      senderEmail: user.email,
       senderName: user.name,
-      receiverEmail: activeConversation.caregiverEmail,
-      receiverName: activeConversation.caregiverName,
+      receiverEmail: activeConversation.userEmail,
+      receiverName: activeConversation.userName,
       text: input.trim(),
     };
 
@@ -162,7 +158,7 @@ export default function MessagesPage() {
           <div className="flex items-center justify-between gap-3 md:block">
             <div>
               <h2 className="text-lg font-bold text-gray-900">Messages</h2>
-              <p className="mt-0.5 text-xs text-gray-400">Only your booked caregivers appear here</p>
+              <p className="mt-0.5 text-xs text-gray-400">Only families you’ve been booked by appear here</p>
             </div>
             <button
               type="button"
@@ -180,7 +176,7 @@ export default function MessagesPage() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search caregiver..."
+              placeholder="Search family..."
               className="w-full rounded-xl border border-gray-200 bg-gray-50 py-2 pl-8 pr-3 text-sm focus:border-[#ff6fae] focus:outline-none"
             />
           </div>
@@ -196,8 +192,8 @@ export default function MessagesPage() {
           ) : filteredConversations.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center p-6 text-center text-gray-400">
               <p className="mb-3 text-4xl">💬</p>
-              <p className="text-sm font-medium">No caregiver chats yet</p>
-              <p className="mt-1 text-xs">Book a service to start messaging your caregiver</p>
+              <p className="text-sm font-medium">No conversations yet</p>
+              <p className="mt-1 text-xs">Booked families will show up here automatically</p>
             </div>
           ) : (
             filteredConversations.map((conversation) => {
@@ -210,14 +206,14 @@ export default function MessagesPage() {
                 >
                   <div className="relative shrink-0">
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#e0508f] text-sm font-bold text-white">
-                      {getInitial(conversation.caregiverName)}
+                      {getInitial(conversation.userName)}
                     </div>
                     <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500" />
                   </div>
 
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="truncate text-sm font-semibold text-gray-900">{conversation.caregiverName || "Caregiver"}</p>
+                      <p className="truncate text-sm font-semibold text-gray-900">{conversation.userName || "Family"}</p>
                       <p className="shrink-0 text-xs text-gray-400">{formatConvTime(conversation.lastMessageAt || conversation.createdAt)}</p>
                     </div>
                     <p className="truncate text-xs font-medium text-[#ff6fae]">{conversation.serviceTitle}</p>
@@ -235,7 +231,7 @@ export default function MessagesPage() {
           <div className="flex flex-1 flex-col items-center justify-center px-6 text-center text-gray-400">
             <p className="mb-4 text-6xl">💬</p>
             <p className="text-lg font-semibold text-gray-600">Select a conversation</p>
-            <p className="mt-1 text-sm">Choose a booked caregiver from the left to start chatting</p>
+            <p className="mt-1 text-sm">Choose a family from the left to start chatting</p>
             <button
               type="button"
               onClick={() => setShowMobileList(true)}
@@ -258,10 +254,10 @@ export default function MessagesPage() {
                 </svg>
               </button>
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#e0508f] font-bold text-white">
-                {getInitial(activeConversation.caregiverName)}
+                {getInitial(activeConversation.userName)}
               </div>
               <div className="min-w-0 flex-1">
-                <p className="font-bold text-gray-900">{activeConversation.caregiverName || "Caregiver"}</p>
+                <p className="font-bold text-gray-900">{activeConversation.userName || "Family"}</p>
                 <div className="flex items-center gap-2">
                   <span className="h-2 w-2 rounded-full bg-green-500" />
                   <p className="text-xs font-medium text-green-600">Online</p>
@@ -286,12 +282,12 @@ export default function MessagesPage() {
                 <div className="flex h-full flex-col items-center justify-center px-4 text-center text-gray-400">
                   <p className="mb-3 text-4xl">👋</p>
                   <p className="text-sm font-medium">Start the conversation!</p>
-                  <p className="mt-1 text-xs">Say hello to {activeConversation.caregiverName}</p>
+                  <p className="mt-1 text-xs">Say hello to {activeConversation.userName}</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {messages.map((msg, index) => {
-                    const isMe = normalizeEmail(msg.senderEmail) === normalizeEmail(user?.email) || normalizeEmail(msg.senderRole) === "user";
+                    const isMe = msg.senderEmail === user?.email;
                     const messageText = msg.text || msg.message || msg.content || msg.body || "";
                     return (
                       <div key={msg._id || index} className={`flex items-end gap-2 ${isMe ? "justify-end" : "justify-start"}`}>
@@ -325,7 +321,7 @@ export default function MessagesPage() {
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && sendMessage()}
-                placeholder={`Message ${activeConversation.caregiverName || "caregiver"}...`}
+                placeholder={`Message ${activeConversation.userName || "family"}...`}
                 className="min-h-11 flex-1 rounded-xl border border-gray-200 bg-gray-50 px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#ff6fae] focus:outline-none focus:ring-2 focus:ring-[#ff6fae]/20"
               />
               <button

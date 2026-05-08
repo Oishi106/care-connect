@@ -3,7 +3,6 @@ import FAQ from "../component/FAQ/page";
 import Pricing from "../component/Pricing/page";
 import AdoptionProcess from "../component/AdoptionProcess/page";
 import Testimonials from "../component/Testimonials/page";
-import Blog from "../component/Blog/page";
 import CTABanner from "../component/CTABanner/page";
 import HomeServices from "../component/HomeServices";
 import StatsSection from "../component/StatsSection";
@@ -26,7 +25,6 @@ export default function Home() {
       <AdoptionProcess />
       <HealthTips />
       <Testimonials />
-      <Blog />
       <CTABanner />
     </div>
   );

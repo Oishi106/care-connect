@@ -12,7 +12,6 @@ const Blog = () => {
         {/* Header */}
         <div className="mb-10 text-center sm:mb-12 md:mb-16">
           <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-pink-50 px-4 py-1.5 text-sm font-semibold text-[#ff6fae]">
-            <span className="text-[#ff6fae]">�</span>
             Latest Blog
           </div>
           

@@ -38,6 +38,7 @@ export async function GET(req) {
     const formattedCaregivers = caregivers.map(cg => ({
       id: cg._id.toString(),
       name: cg.name || "Unknown",
+      email: cg.email || "",
       specialty: cg.specialty || cg.serviceType || "General Care",
       rating: cg.rating || 4.5,
       reviews: cg.reviews || 0,
