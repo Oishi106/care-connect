@@ -4,13 +4,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import { fetchServices, fallbackServices } from "@/lib/services";
 
-const caregiverOptions = [
-  { id: 1, name: "Tanvir Hossain", specialty: "Elderly Care", rating: 4.9, available: true },
-  { id: 2, name: "Maya Islam", specialty: "Baby Sitting", rating: 4.8, available: true },
-  { id: 3, name: "Sophie Rahman", specialty: "Patient Care", rating: 4.9, available: false },
-  { id: 4, name: "Ethan Karim", specialty: "Special Needs", rating: 4.7, available: true },
-];
-
 function getServiceEmoji(title) {
   const value = String(title || "").toLowerCase();
   if (value.includes("elder")) return "👴";
@@ -70,7 +63,9 @@ function ServiceCard({ service, selected, onSelect }) {
 export default function BookService() {
   const { data: session } = useSession();
   const [services, setServices] = useState([]);
+  const [caregivers, setCaregivers] = useState([]);
   const [loadingServices, setLoadingServices] = useState(true);
+  const [loadingCaregivers, setLoadingCaregivers] = useState(true);
   const [step, setStep] = useState(1);
   const [serviceSearch, setServiceSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("All");
@@ -104,6 +99,30 @@ export default function BookService() {
       }
     });
 
+    const loadCaregivers = async () => {
+      try {
+        const response = await fetch("/api/caregivers");
+        const data = response.ok ? await response.json() : [];
+
+        if (mounted) {
+          setCaregivers((Array.isArray(data) ? data : []).map(caregiver => ({
+            ...caregiver,
+            available: true,
+          })));
+        }
+      } catch {
+        if (mounted) {
+          setCaregivers([]);
+        }
+      } finally {
+        if (mounted) {
+          setLoadingCaregivers(false);
+        }
+      }
+    };
+
+    loadCaregivers();
+
     const intervalId = setInterval(() => {
       loadServices();
     }, 10000);
@@ -115,6 +134,7 @@ export default function BookService() {
   }, []);
 
   const selectedService = useMemo(() => services.find(service => getServiceKey(service) === selected.service), [services, selected.service]);
+  const selectedCaregiver = useMemo(() => caregivers.find(caregiver => caregiver.id === selected.caregiver), [caregivers, selected.caregiver]);
   const selectedServiceRate = selectedService ? getServiceRate(selectedService) : 0;
   const totalPrice = selectedServiceRate * selected.hours;
   const categories = useMemo(() => ["All", ...Array.from(new Set(services.map(service => service.cat || "General")))], [services]);
@@ -143,7 +163,7 @@ export default function BookService() {
       throw new Error("Please sign in and select a service first.");
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings`, {
+    const response = await fetch(`/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -152,7 +172,7 @@ export default function BookService() {
         serviceId: getServiceKey(selectedService),
         serviceTitle: selectedService.title,
         caregiverId: selected.caregiver,
-        caregiverName: caregiverOptions.find(caregiver => caregiver.id === selected.caregiver)?.name,
+        caregiverName: selectedCaregiver?.name,
         date: selected.date,
         time: selected.time,
         hours: selected.hours,
@@ -180,14 +200,14 @@ export default function BookService() {
   };
 
   const updateDraftBooking = async (id) => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${id}`, {
+    const response = await fetch(`/api/bookings/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         serviceId: getServiceKey(selectedService),
         serviceTitle: selectedService.title,
         caregiverId: selected.caregiver,
-        caregiverName: caregiverOptions.find(caregiver => caregiver.id === selected.caregiver)?.name,
+        caregiverName: selectedCaregiver?.name,
         date: selected.date,
         time: selected.time,
         hours: selected.hours,
@@ -206,15 +226,16 @@ export default function BookService() {
   const handleCaregiverContinue = async () => {
     if (!selected.caregiver) return;
 
+    setStep(3);
+    setPayError("");
+
+    if (bookingId) {
+      return;
+    }
+
     try {
       setCreatingDraft(true);
-      setPayError("");
-
-      if (!bookingId) {
-        await createDraftBooking();
-      }
-
-      setStep(3);
+      await createDraftBooking();
     } catch (error) {
       setPayError(error?.message || "Something went wrong. Please try again.");
     } finally {
@@ -389,28 +410,36 @@ export default function BookService() {
       {step === 2 && (
         <div>
           <h2 className="mb-4 text-lg font-bold text-gray-800">Choose a Caregiver</h2>
+          {loadingCaregivers ? (
+            <div className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 text-sm text-gray-500 shadow-sm">
+              Loading caregivers...
+            </div>
+          ) : (
           <div className="mb-6 grid gap-4 sm:grid-cols-2">
-            {caregiverOptions.map(caregiver => (
+            {caregivers.map(caregiver => (
               <button
                 key={caregiver.id}
                 type="button"
-                onClick={() => caregiver.available && setSelected(prev => ({ ...prev, caregiver: caregiver.id }))}
-                className={`rounded-2xl border-2 p-4 text-left transition ${selected.caregiver === caregiver.id ? "border-[#ff6fae] shadow-md" : "border-gray-100 hover:border-gray-200"} ${!caregiver.available ? "cursor-not-allowed opacity-50" : ""}`}
+                onClick={() => setSelected(prev => ({ ...prev, caregiver: caregiver.id }))}
+                className={`rounded-2xl border-2 p-4 text-left transition ${selected.caregiver === caregiver.id ? "border-[#ff6fae] shadow-md" : "border-gray-100 hover:border-gray-200"}`}
               >
                 <div className="mb-3 flex items-center gap-3">
-                  <div className="h-14 w-14 rounded-full bg-[#ff6fae]/10 flex items-center justify-center text-[#ff6fae] font-bold text-lg">{caregiver.name[0]}</div>
+                  <div className="h-14 w-14 overflow-hidden rounded-full bg-[#ff6fae]/10 flex items-center justify-center text-[#ff6fae] font-bold text-lg">
+                    {caregiver.image ? <img src={caregiver.image} alt={caregiver.name} className="h-full w-full object-cover" /> : caregiver.name[0]}
+                  </div>
                   <div>
                     <p className="font-bold text-gray-900">{caregiver.name}</p>
                     <p className="text-xs font-medium text-[#ff6fae]">{caregiver.specialty}</p>
                     <p className="text-xs font-bold text-gray-700">★ {caregiver.rating}</p>
                   </div>
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${caregiver.available ? "bg-green-50 text-green-700" : "bg-gray-100 text-gray-500"}`}>
-                  {caregiver.available ? "Available" : "Unavailable"}
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-green-50 text-green-700">
+                  Available
                 </span>
               </button>
             ))}
           </div>
+          )}
 
           <div className="flex gap-3">
             <button onClick={() => setStep(1)} className="rounded-xl border border-gray-200 px-6 py-3 font-semibold text-gray-700 transition hover:bg-gray-50">← Back</button>
@@ -472,7 +501,7 @@ export default function BookService() {
               <h3 className="mb-4 font-bold text-gray-900">Booking Summary</h3>
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Service</span><span className="font-medium text-gray-900">{selectedService?.title}</span></div>
-                <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Caregiver</span><span className="font-medium text-gray-900">{caregiverOptions.find(caregiver => caregiver.id === selected.caregiver)?.name}</span></div>
+                <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Caregiver</span><span className="font-medium text-gray-900">{selectedCaregiver?.name}</span></div>
                 <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Date</span><span className="font-medium text-gray-900">{selected.date || "Not set"}</span></div>
                 <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Duration</span><span className="font-medium text-gray-900">{selected.hours} hours</span></div>
                 <div className="flex justify-between border-b border-gray-100 py-2"><span className="text-gray-500">Rate</span><span className="font-medium text-gray-900">${selectedService?.price}/hr</span></div>

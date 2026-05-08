@@ -13,7 +13,7 @@ export default function PaymentSuccessPage() {
     if (!sessionId || !bookingId) { setStatus("done"); return; }
 
     // Update booking to Confirmed + create payment record
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/bookings/${bookingId}`, {
+    fetch(`/api/bookings/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "Confirmed", paymentStatus: "paid" }),
