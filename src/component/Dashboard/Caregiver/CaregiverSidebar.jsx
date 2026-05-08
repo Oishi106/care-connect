@@ -18,14 +18,14 @@ const navItems = [
 
 export default function CaregiverSidebar() {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);      
   const { data: session } = useSession();
   const user = session?.user;
 
   const isActiveRoute = (href) => pathname === href || pathname.startsWith(`${href}/`);
   const displayName = user?.name || "Caregiver";
-  const avatarFallback = displayName?.[0]?.toUpperCase() || "C";
-
+  const avatarFallback = displayName?.[0]?.toUpperCase() || "C";        
+      
   return (
     <aside className={`${collapsed ? "w-20" : "w-64"} relative flex flex-col bg-white border-r border-gray-100 shadow-sm transition-all duration-300 min-h-screen z-30`}>
       <div className="flex items-center gap-3 border-b border-gray-100 px-4 py-5">
@@ -41,11 +41,11 @@ export default function CaregiverSidebar() {
 
       {!collapsed && (
         <div className="border-b border-gray-100 px-4 py-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3">                    
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#ff8fc4] text-sm font-bold text-white">
               {avatarFallback}
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0">       
               <p className="truncate text-sm font-semibold text-gray-900">{displayName}</p>
               <p className="truncate text-xs text-gray-500">{user?.email || "caregiver@careconnect.com"}</p>
             </div>

@@ -24,21 +24,34 @@ export default function AdminCaregiversPage() {
 
   const loadApplications = () => {
     setLoading(true);
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/caregiver-applications?status=${filter}`)
+    fetch(`/api/admin/caregiver-applications?status=${filter}`)
       .then(r => r.json())
       .then(data => { setApplications(Array.isArray(data) ? data : []); setLoading(false); })
       .catch(() => setLoading(false));
   };
 
-  const updateStatus = async (id, status) => {
+  const updateStatus = async (id, status, email) => {
     setUpdating(id);
     try {
-      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/caregiver-applications/${id}`, {
+      let response = await fetch(`/api/admin/caregiver-applications/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      setApplications(prev => prev.filter(a => a._id !== id));
+
+      if (!response.ok && email) {
+        response = await fetch(`/api/admin/caregiver-applications`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status, email }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error("Unable to update caregiver status.");
+      }
+      setSearch("");
+      setFilter(status);
     } catch (e) {}
     setUpdating(null);
   };
@@ -127,7 +140,7 @@ export default function AdminCaregiversPage() {
                 <div key={app._id} className="rounded-2xl bg-white border border-gray-100 shadow-sm p-5 hover:shadow-md transition">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Avatar */}
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-[#ff6fae] to-[#e0508f] flex items-center justify-center text-white font-bold text-lg flex-shrink-0">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-linear-to-br from-[#ff6fae] to-[#e0508f] text-lg font-bold text-white">
                       {app.name?.[0]?.toUpperCase() || "C"}
                     </div>
 
@@ -156,16 +169,16 @@ export default function AdminCaregiversPage() {
 
                     {/* Actions */}
                     {app.status === "pending" && (
-                      <div className="flex gap-2 flex-shrink-0">
+                      <div className="flex shrink-0 gap-2">
                         <button
-                          onClick={() => updateStatus(app._id, "approved")}
+                          onClick={() => updateStatus(app._id, "approved", app.email)}
                           disabled={updating === app._id}
                           className="px-4 py-2 rounded-xl bg-green-500 text-white text-xs font-bold hover:brightness-95 transition disabled:opacity-60"
                         >
                           {updating === app._id ? "..." : "✓ Approve"}
                         </button>
                         <button
-                          onClick={() => updateStatus(app._id, "rejected")}
+                          onClick={() => updateStatus(app._id, "rejected", app.email)}
                           disabled={updating === app._id}
                           className="px-4 py-2 rounded-xl bg-red-500 text-white text-xs font-bold hover:brightness-95 transition disabled:opacity-60"
                         >
@@ -175,10 +188,10 @@ export default function AdminCaregiversPage() {
                     )}
 
                     {app.status === "approved" && (
-                      <span className="text-green-600 text-sm font-semibold flex-shrink-0">✓ Approved</span>
+                      <span className="shrink-0 text-sm font-semibold text-green-600">✓ Approved</span>
                     )}
                     {app.status === "rejected" && (
-                      <span className="text-red-500 text-sm font-semibold flex-shrink-0">✕ Rejected</span>
+                      <span className="shrink-0 text-sm font-semibold text-red-500">✕ Rejected</span>
                     )}
                   </div>
                 </div>

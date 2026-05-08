@@ -13,7 +13,12 @@ export async function PATCH(request, { params }) {
       return NextResponse.json({ error: "Invalid status update." }, { status: 400 });
     }
 
-    const applicationId = params.id;
+    const resolvedParams = await Promise.resolve(params);
+    const applicationId = resolvedParams?.id;
+
+    if (!applicationId) {
+      return NextResponse.json({ error: "Application id is required." }, { status: 400 });
+    }
 
     const client = await clientPromise;
     const usersCollection = client.db().collection("users");
@@ -22,13 +27,13 @@ export async function PATCH(request, { params }) {
         applicationStatus: status,
         role: "caregiver",
         updatedAt: new Date(),
-        ...(status === "approved" ? { approvedAt: new Date() } : { rejectedAt: new Date() }),
+        ...(status === "approved" ? { approvedAt: new Date(), rejectedAt: null } : { rejectedAt: new Date(), approvedAt: null }),
       },
     };
 
     const filters = ObjectId.isValid(applicationId)
-      ? [{ _id: new ObjectId(applicationId), role: "caregiver" }, { _id: applicationId, role: "caregiver" }]
-      : [{ _id: applicationId, role: "caregiver" }];
+      ? [{ _id: new ObjectId(applicationId) }, { _id: applicationId }]
+      : [{ _id: applicationId }];
 
     let result = { matchedCount: 0 };
 
