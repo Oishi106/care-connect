@@ -24,7 +24,7 @@ function normalizeServiceDocument(document) {
     image: document.image || document.img || "",
     price: parsePrice(document.price),
     active: document.active !== false,
-    icon: document.icon || "✨",
+    icon: document.icon || "✨",        
     bookings: Number(document.bookings || 0),
     createdAt: document.createdAt || null,
     updatedAt: document.updatedAt || null,
@@ -35,11 +35,10 @@ async function getCollection() {
   const client = await clientPromise;
   return client.db().collection("services");
 }
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    const activeParam = searchParams.get("active");
+    const activeParam = searchParams.get("active");                     
     const includeInactive = toLower(searchParams.get("includeInactive")) === "true";
 
     const filter = includeInactive || activeParam === null
