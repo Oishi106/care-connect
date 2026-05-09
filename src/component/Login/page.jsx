@@ -1,13 +1,14 @@
 "use client";
 /* eslint-disable @next/next/no-img-element */
 
-import React, { useState } from "react";
+import React, { useState, Suspense } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import BrandLogo from "../BrandLogo";
 
-const Login = () => {
+// ✅ useSearchParams আলাদা component-এ
+function LoginContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -304,8 +305,6 @@ const Login = () => {
                     ? "Google sign-in unavailable for caregivers"
                     : "Continue with Google"}
                 </button>
-
-               
               </div>
 
               {/* Sign Up Link */}
@@ -373,6 +372,15 @@ const Login = () => {
         </div>
       </div>
     </div>
+  );
+}
+
+// ✅ Main export — Suspense দিয়ে wrap করা
+const Login = () => {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginContent />
+    </Suspense>
   );
 };
 
