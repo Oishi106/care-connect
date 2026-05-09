@@ -1,26 +1,26 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
   const bookingId = searchParams.get("booking_id");
-  const [status, setStatus] = useState("verifying"); // verifying | done | error
+  const shouldVerify = Boolean(sessionId && bookingId);
+  const [status, setStatus] = useState(shouldVerify ? "verifying" : "done");
 
   useEffect(() => {
-    if (!sessionId || !bookingId) { setStatus("done"); return; }
+    if (!shouldVerify) return;
 
-    // Update booking to Confirmed + create payment record
     fetch(`/api/bookings/${bookingId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: "Confirmed", paymentStatus: "paid" }),
     })
       .then(() => setStatus("done"))
-      .catch(() => setStatus("done")); // still show success
-  }, [sessionId, bookingId]);
+      .catch(() => setStatus("done"));
+  }, [shouldVerify, bookingId]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-50 p-6">
@@ -59,5 +59,13 @@ export default function PaymentSuccessPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PaymentSuccessPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center">Loading...</div>}>
+      <PaymentSuccessContent />
+    </Suspense>
   );
 }
