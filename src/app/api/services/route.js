@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/mongodb";
-import { fallbackServices } from "@/lib/services";
 
 function toLower(value) {
   return String(value || "").trim().toLowerCase();
@@ -37,36 +36,6 @@ async function getCollection() {
   return client.db().collection("services");
 }
 
-function parseFallbackPrice(label) {
-  const parsed = Number(String(label || "").replace(/[^0-9.-]/g, ""));
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-async function seedServicesIfNeeded(collection) {
-  const now = new Date();
-  const existingTitles = new Set(
-    (await collection.find({}, { projection: { title: 1 } }).toArray()).map((document) => toLower(document.title))
-  );
-
-  const seedDocuments = fallbackServices.filter((service) => !existingTitles.has(toLower(service.title))).map((service) => ({
-    title: service.title,
-    description: service.description || service.desc || "",
-    category: service.category || "Home",
-    badge: service.tag || "",
-    image: service.image || service.img || "",
-    icon: service.icon || "✨",
-    price: parseFallbackPrice(service.price),
-    active: true,
-    bookings: 0,
-    createdAt: now,
-    updatedAt: now,
-  }));
-
-  if (seedDocuments.length > 0) {
-    await collection.insertMany(seedDocuments);
-  }
-}
-
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -78,13 +47,10 @@ export async function GET(request) {
       : { active: activeParam === "true" };
 
     const collection = await getCollection();
-    await seedServicesIfNeeded(collection);
     const documents = await collection.find(filter).sort({ createdAt: 1, updatedAt: 1 }).toArray();
 
     return NextResponse.json(documents.map(normalizeServiceDocument), {
-      headers: {
-        "Cache-Control": "no-store, max-age=0",
-      },
+      headers: { "Cache-Control": "no-store, max-age=0" },
     });
   } catch {
     return NextResponse.json({ error: "Unable to load services right now." }, { status: 500 });
