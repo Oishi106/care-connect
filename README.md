@@ -6,7 +6,10 @@ A modern full-stack caregiving service platform where users can easily find and 
 
 ## 🌐 Live Site
 
-https://your-care-connect.vercel.app/
+https://care-connect-client-eight.vercel.app/
+
+### 🎯 Admin id : "mahmudaoishi457@gmail.com"
+### 🎯 Admin password : "123456"
 
 ---
 
