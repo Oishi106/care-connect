@@ -89,7 +89,7 @@ function mapService(svc) {
 // API থেকে fetch করো
 export async function fetchServices() {
   const serviceEndpoints = [
-    "http://localhost:8000/services",
+    "https://care-connect-server-hca5.onrender.com/services",
     "/api/services?active=true",
   ];
 
